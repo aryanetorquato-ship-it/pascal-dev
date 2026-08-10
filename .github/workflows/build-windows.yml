@@ -23,39 +23,57 @@ jobs:
       - name: Localizar Lazarus
         shell: powershell
         run: |
-          $paths = @(
-            "C:\lazarus",
-            "C:\Program Files\Lazarus",
-            "C:\Program Files (x86)\Lazarus"
+          $lazbuild = Get-Command lazbuild.exe -ErrorAction SilentlyContinue
+
+          if ($lazbuild) {
+            Write-Host "lazbuild encontrado no PATH:"
+            Write-Host $lazbuild.Source
+            "LAZBUILD=$($lazbuild.Source)" >> $env:GITHUB_ENV
+            exit 0
+          }
+
+          $candidatos = @(
+            "C:\lazarus\lazbuild.exe",
+            "C:\lazarus\lazbuild\lazbuild.exe",
+            "C:\Program Files\Lazarus\lazbuild.exe",
+            "C:\Program Files\Lazarus\lazbuild\lazbuild.exe",
+            "C:\Program Files (x86)\Lazarus\lazbuild.exe",
+            "C:\Program Files (x86)\Lazarus\lazbuild\lazbuild.exe"
           )
 
-          $lazbuild = $null
-
-          foreach ($path in $paths) {
-            if (Test-Path $path) {
-              $found = Get-ChildItem -Path $path -Filter "lazbuild.exe" -Recurse -File -ErrorAction SilentlyContinue |
-                Select-Object -First 1
-
-              if ($found) {
-                $lazbuild = $found.FullName
-                break
-              }
+          foreach ($caminho in $candidatos) {
+            if (Test-Path $caminho) {
+              Write-Host "lazbuild encontrado:"
+              Write-Host $caminho
+              "LAZBUILD=$caminho" >> $env:GITHUB_ENV
+              exit 0
             }
           }
 
-          if (-not $lazbuild) {
-            Write-Host "lazbuild.exe nao encontrado."
-            exit 1
-          }
+          Write-Host "ERRO: lazbuild.exe nao foi encontrado."
+          Write-Host "PATH atual:"
+          Write-Host $env:PATH
 
-          Write-Host "Lazbuild encontrado em: $lazbuild"
-          "LAZBUILD=$lazbuild" >> $env:GITHUB_ENV
+          exit 1
 
       - name: Compilar Questionario
         shell: powershell
         working-directory: projetos/LogicB0B
         run: |
+          Write-Host "Compilando Questionario.lpr..."
           & "$env:LAZBUILD" Questionario.lpr
+
+      - name: Verificar EXE
+        shell: powershell
+        working-directory: projetos/LogicB0B
+        run: |
+          if (-not (Test-Path "Questionario.exe")) {
+            Write-Host "ERRO: Questionario.exe nao foi gerado."
+            Get-ChildItem
+            exit 1
+          }
+
+          Write-Host "Questionario.exe gerado com sucesso."
 
       - name: Publicar EXE
         uses: actions/upload-artifact@v4
