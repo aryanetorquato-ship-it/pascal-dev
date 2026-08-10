@@ -19,11 +19,22 @@ jobs:
         with:
           lazarus-version: "3.0"
 
-      - name: Compilar Questionario
-        shell: cmd
-        working-directory: projetos\\LogicB0B
+      - name: Localizar Lazarus
+        shell: powershell
         run: |
-          lazbuild Questionario.lpr
+          Get-ChildItem -Path "C:\lazarus" -Filter "lazbuild.exe" -Recurse | Select-Object -First 5 FullName
+
+      - name: Compilar Questionario
+        shell: powershell
+        working-directory: projetos\LogicB0B
+        run: |
+          $lazbuild = Get-ChildItem -Path "C:\lazarus" -Filter "lazbuild.exe" -Recurse | Select-Object -First 1
+          if (-not $lazbuild) {
+            Write-Error "lazbuild.exe nao encontrado."
+            exit 1
+          }
+
+          & $lazbuild.FullName Questionario.lpr
 
       - name: Publicar EXE
         uses: actions/upload-artifact@v4
