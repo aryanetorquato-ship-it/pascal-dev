@@ -202,7 +202,7 @@ function DetectarArmazenamento: String;
 begin
   GravarLogDiagnostico('[LOG] Entrou em DetectarArmazenamento');
   Result := ExecutarPowerShell(
-    '(Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | ' +
+    '(Get-WmiObject Win32_LogicalDisk -Filter "DriveType=3" | ' +
     'ForEach-Object { ' +
     '$_.DeviceID + " - " + ' +
     '[math]::Round($_.Size / 1GB, 2).ToString() + " GB total - " + ' +
