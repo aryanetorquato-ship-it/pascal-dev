@@ -166,14 +166,11 @@ end;
 function DetectarArmazenamento: String;
 begin
   Result := ExecutarPowerShell(
-    '(Get-WmiObject Win32_DiskDrive | ' +
-    'ForEach-Object { ' +
-    '$_.Model + " - " + ' +
-    '[math]::Round($_.Size / 1GB, 0).ToString() + " GB" ' +
-    '}) -join " | "'
+    '(Get-WmiObject Win32_LogicalDisk -Filter "DriveType=3" | ' +
+    'Select-Object DeviceID, Size, FreeSpace | ' +
+    'Format-Table -AutoSize | Out-String)'
   );
 end;
-
 
 function DetectarSistemaOperacional: String;
 begin
@@ -383,11 +380,31 @@ begin
   TotalComputadores :=
     LerInteiro('Quantos computadores existem no total? ');
 
-  TotalCaixas :=
-    LerInteiro('Quantos computadores serao utilizados como Caixa? ');
+  repeat
+    TotalCaixas :=
+      LerInteiro('Quantos computadores serao utilizados como Caixa? ');
 
-  TotalRetaguardas :=
-    LerInteiro('Quantos computadores serao utilizados como Retaguarda? ');
+    if TotalCaixas > TotalComputadores then
+    begin
+      WriteLn;
+      WriteLn('Quantidade invalida.');
+      WriteLn('A quantidade de Caixas nao pode ser maior que o total de computadores.');
+      WriteLn;
+    end;
+  until TotalCaixas <= TotalComputadores;
+
+  repeat
+    TotalRetaguardas :=
+      LerInteiro('Quantos computadores serao utilizados como Retaguarda? ');
+
+    if TotalRetaguardas > TotalComputadores then
+    begin
+      WriteLn;
+      WriteLn('Quantidade invalida.');
+      WriteLn('A quantidade de Retaguardas nao pode ser maior que o total de computadores.');
+      WriteLn;
+    end;
+  until TotalRetaguardas <= TotalComputadores;
 
   WriteLn;
   WriteLn('FUNCAO DESTE COMPUTADOR');
