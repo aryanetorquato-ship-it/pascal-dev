@@ -166,11 +166,10 @@ begin
   Result := ExecutarPowerShell(
     '(Get-WmiObject Win32_LogicalDisk -Filter "DriveType=3" | ' +
     'ForEach-Object { ' +
-    '$letra = $_.DeviceID; ' +
-    '$total = [math]::Round($_.Size / 1GB, 2); ' +
-    '$livre = [math]::Round($_.FreeSpace / 1GB, 2); ' +
-    '"$letra - $total GB total - $livre GB livre" ' +
-    '}) -join " | "'
+    '$_.DeviceID + "|" + ' +
+    '[math]::Round($_.Size / 1GB, 2).ToString() + "|" + ' +
+    '[math]::Round($_.FreeSpace / 1GB, 2).ToString() ' +
+    '}) -join ";"'
   );
 end;
 
