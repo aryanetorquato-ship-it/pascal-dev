@@ -160,19 +160,17 @@ begin
   ) + ' GB';
 end;
 
-
 function DetectarArmazenamento: String;
 begin
   Result := ExecutarPowerShell(
-    '(Get-WmiObject Win32_LogicalDisk -Filter "DriveType=3" | ' +
+    '(Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | ' +
     'ForEach-Object { ' +
-    '$_.DeviceID + "|" + ' +
-    '[math]::Round($_.Size / 1GB, 2).ToString() + "|" + ' +
-    '[math]::Round($_.FreeSpace / 1GB, 2).ToString() ' +
-    '}) -join ";"'
+    '$_.DeviceID + " - " + ' +
+    '[math]::Round($_.Size / 1GB, 2).ToString() + " GB total - " + ' +
+    '[math]::Round($_.FreeSpace / 1GB, 2).ToString() + " GB livre" ' +
+    '}) -join " | "'
   );
 end;
-
 
 function DetectarSistemaOperacional: String;
 begin
