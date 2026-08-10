@@ -60,9 +60,8 @@ jobs:
         shell: powershell
         working-directory: projetos/LogicB0B
         run: |
-          Write-Host "Compilando Questionario.lpr..."
-          & "$env:LAZBUILD" Questionario.lpr
-
+          Write-Host "Compilando Questionario para Windows x64..."
+          fpc.exe -Twin64 -O2 Questionario.pas
       - name: Verificar EXE
         shell: powershell
         working-directory: projetos/LogicB0B
