@@ -19,22 +19,32 @@ jobs:
         with:
           lazarus-version: "3.0"
 
-      - name: Localizar Lazarus
+      - name: Verificar Lazarus
         shell: powershell
         run: |
-          Get-ChildItem -Path "C:\lazarus" -Filter "lazbuild.exe" -Recurse | Select-Object -First 5 FullName
-
-      - name: Compilar Questionario
-        shell: powershell
-        working-directory: projetos\LogicB0B
-        run: |
-          $lazbuild = Get-ChildItem -Path "C:\lazarus" -Filter "lazbuild.exe" -Recurse | Select-Object -First 1
+          $lazbuild = Get-Command lazbuild.exe -ErrorAction SilentlyContinue
           if (-not $lazbuild) {
-            Write-Error "lazbuild.exe nao encontrado."
+            Write-Host "lazbuild.exe nao encontrado no PATH."
             exit 1
           }
+          Write-Host "lazbuild encontrado em: $($lazbuild.Source)"
+          lazbuild.exe --version
 
-          & $lazbuild.FullName Questionario.lpr
+      - name: Compilar Questionario
+        shell: cmd
+        working-directory: projetos\LogicB0B
+        run: |
+          lazbuild Questionario.lpr
+
+      - name: Verificar EXE
+        shell: powershell
+        working-directory: projetos/LogicB0B
+        run: |
+          if (-not (Test-Path "Questionario.exe")) {
+            Write-Host "Questionario.exe nao foi gerado."
+            exit 1
+          }
+          Get-Item "Questionario.exe"
 
       - name: Publicar EXE
         uses: actions/upload-artifact@v4
