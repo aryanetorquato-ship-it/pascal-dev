@@ -1,0 +1,32 @@
+name: Build LogicB0B Questionario
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    steps:
+      - name: Baixar codigo
+        uses: actions/checkout@v4
+
+      - name: Instalar Lazarus
+        uses: gcarreno/setup-lazarus@v1
+        with:
+          lazarus-version: "3.0"
+
+      - name: Compilar Questionario
+        shell: cmd
+        working-directory: projetos\LogicB0B
+        run: |
+          lazbuild Questionario.lpr
+
+      - name: Publicar EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: LogicB0B-Questionario
+          path: projetos/LogicB0B/Questionario.exe
