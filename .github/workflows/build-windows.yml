@@ -57,43 +57,45 @@ jobs:
           exit 1
 
       - name: Compilar Questionario
-    shell: powershell
-    working-directory: projetos/LogicB0B
-    run: |
-      Write-Host "Compilando Questionario para Windows x64..."
-      fpc.exe -Twin64 -O2 Questionario.pas
+        shell: powershell
+        working-directory: projetos/LogicB0B
+        run: |
+          Write-Host "Compilando Questionario para Windows x64..."
+          fpc.exe -Twin64 -O2 Questionario.pas
 
-      Write-Host "Compilando teste isolado do PowerShell..."
-      fpc.exe -Twin64 -O2 TestePowerShell.pas
+          Write-Host "Compilando teste isolado do PowerShell..."
+          fpc.exe -Twin64 -O2 TestePowerShell.pas
 
-  - name: Verificar EXE
-    shell: powershell
-    working-directory: projetos/LogicB0B
-    run: |
-      if (-not (Test-Path "Questionario.exe")) {
-        Write-Host "ERRO: Questionario.exe nao foi gerado."
-        Get-ChildItem
-        exit 1
-      }
+      - name: Verificar EXE
+        shell: powershell
+        working-directory: projetos/LogicB0B
+        run: |
+          if (-not (Test-Path "Questionario.exe")) {
+            Write-Host "ERRO: Questionario.exe nao foi gerado."
+            Get-ChildItem
+            exit 1
+          }
 
-      if (-not (Test-Path "TestePowerShell.exe")) {
-        Write-Host "ERRO: TestePowerShell.exe nao foi gerado."
-        Get-ChildItem
-        exit 1
-      }
+          if (-not (Test-Path "TestePowerShell.exe")) {
+            Write-Host "ERRO: TestePowerShell.exe nao foi gerado."
+            Get-ChildItem
+            exit 1
+          }
 
-      Write-Host "Questionario.exe gerado com sucesso."
-      Write-Host "TestePowerShell.exe gerado com sucesso."
+          Write-Host "Questionario.exe gerado com sucesso."
+          Write-Host "TestePowerShell.exe gerado com sucesso."
 
-  - name: Executar teste PowerShell
-    shell: powershell
-    working-directory: projetos/LogicB0B
-    run: |
-      Write-Host "Executando teste isolado..."
-      .\TestePowerShell.exe
+      - name: Executar teste PowerShell
+        shell: powershell
+        working-directory: projetos/LogicB0B
+        run: |
+          Write-Host "Executando teste isolado..."
+          .\TestePowerShell.exe
 
-  - name: Publicar EXE
-    uses: actions/upload-artifact@v4
-    with:
-      name: LogicB0B-Questionario
-      path: projetos/LogicB0B/Questionario.exe
+      - name: Publicar EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: LogicB0B-Questionario
+          path: |
+            projetos/LogicB0B/Questionario.exe
+            projetos/LogicB0B/TestePowerShell.exe
