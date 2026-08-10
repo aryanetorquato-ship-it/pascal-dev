@@ -37,43 +37,86 @@ var
   SistemaOperacional: String;
   ArquiteturaSO: String;
 
-
 function ExecutarPowerShell(const Comando: String): String;
 var
   Processo: TProcess;
   Saida: TStringList;
+  ExecutavelPowerShell: String;
 begin
   Result := '';
+
+  {$IFDEF WINDOWS}
 
   Processo := TProcess.Create(nil);
   Saida := TStringList.Create;
 
   try
-    Processo.Executable := 'powershell.exe';
+    { Localizacao padrao do Windows PowerShell.
+      Usamos o WINDIR para evitar depender de PATH. }
+    ExecutavelPowerShell :=
+      GetEnvironmentVariable('WINDIR') +
+      '\System32\WindowsPowerShell\v1.0\powershell.exe';
+
+    if not FileExists(ExecutavelPowerShell) then
+      ExecutavelPowerShell := 'powershell.exe';
+
+    Processo.Executable := ExecutavelPowerShell;
 
     Processo.Parameters.Add('-NoProfile');
     Processo.Parameters.Add('-NonInteractive');
+    Processo.Parameters.Add('-ExecutionPolicy');
+    Processo.Parameters.Add('Bypass');
     Processo.Parameters.Add('-Command');
     Processo.Parameters.Add(Comando);
 
-    Processo.Options := [poUsePipes, poWaitOnExit];
+    Processo.Options := [
+      poUsePipes,
+      poWaitOnExit,
+      poStderrToOutPut
+    ];
 
-    Processo.Execute;
+    try
+      Processo.Execute;
+    except
+      on E: Exception do
+      begin
+        Result := 'Nao foi possivel coletar: ' + E.Message;
+        Exit;
+      end;
+    end;
 
     Saida.LoadFromStream(Processo.Output);
 
     Result := Trim(Saida.Text);
+
+    if Processo.ExitStatus <> 0 then
+    begin
+      if Result = '' then
+        Result := 'Nao foi possivel coletar os dados.';
+    end;
+
+    if Result = '' then
+      Result := 'Nao informado';
+
   finally
     Saida.Free;
     Processo.Free;
   end;
+
+  {$ELSE}
+
+  { O Questionario sera distribuido somente para Windows.
+    O Codespace Linux serve apenas para desenvolvimento. }
+  Result := 'Coleta disponivel somente no Windows';
+
+  {$ENDIF}
 end;
 
 
 function DetectarFabricantePC: String;
 begin
   Result := ExecutarPowerShell(
-    '(Get-CimInstance Win32_ComputerSystem).Manufacturer'
+    '(Get-WmiObject Win32_ComputerSystem).Manufacturer'
   );
 end;
 
@@ -81,7 +124,7 @@ end;
 function DetectarModeloPC: String;
 begin
   Result := ExecutarPowerShell(
-    '(Get-CimInstance Win32_ComputerSystem).Model'
+    '(Get-WmiObject Win32_ComputerSystem).Model'
   );
 end;
 
@@ -89,7 +132,7 @@ end;
 function DetectarProcessador: String;
 begin
   Result := ExecutarPowerShell(
-    '(Get-CimInstance Win32_Processor).Name'
+    '(Get-WmiObject Win32_Processor).Name'
   );
 end;
 
@@ -97,7 +140,7 @@ end;
 function DetectarNucleosCPU: String;
 begin
   Result := ExecutarPowerShell(
-    '(Get-CimInstance Win32_Processor).NumberOfCores'
+    '(Get-WmiObject Win32_Processor).NumberOfCores'
   );
 end;
 
@@ -105,7 +148,7 @@ end;
 function DetectarThreadsCPU: String;
 begin
   Result := ExecutarPowerShell(
-    '(Get-CimInstance Win32_Processor).NumberOfLogicalProcessors'
+    '(Get-WmiObject Win32_Processor).NumberOfLogicalProcessors'
   );
 end;
 
@@ -113,7 +156,9 @@ end;
 function DetectarMemoriaRAM: String;
 begin
   Result := ExecutarPowerShell(
-    '[math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 2).ToString() + " GB"'
+    '[math]::Round(' +
+    '(Get-WmiObject Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 2' +
+    ').ToString() + " GB"'
   );
 end;
 
@@ -121,7 +166,11 @@ end;
 function DetectarArmazenamento: String;
 begin
   Result := ExecutarPowerShell(
-    '(Get-CimInstance Win32_DiskDrive | ForEach-Object { $_.Model + " - " + [math]::Round($_.Size / 1GB, 0).ToString() + " GB" }) -join " | "'
+    '(Get-WmiObject Win32_DiskDrive | ' +
+    'ForEach-Object { ' +
+    '$_.Model + " - " + ' +
+    '[math]::Round($_.Size / 1GB, 0).ToString() + " GB" ' +
+    '}) -join " | "'
   );
 end;
 
@@ -129,7 +178,7 @@ end;
 function DetectarSistemaOperacional: String;
 begin
   Result := ExecutarPowerShell(
-    '(Get-CimInstance Win32_OperatingSystem).Caption'
+    '(Get-WmiObject Win32_OperatingSystem).Caption'
   );
 end;
 
@@ -137,85 +186,70 @@ end;
 function DetectarArquiteturaSO: String;
 begin
   Result := ExecutarPowerShell(
-    '(Get-CimInstance Win32_OperatingSystem).OSArchitecture'
+    '(Get-WmiObject Win32_OperatingSystem).OSArchitecture'
   );
 end;
 
 
+function LerInteiro(const Pergunta: String): Integer;
+var
+  Texto: String;
+  Valor: Integer;
 begin
-  WriteLn('========================================');
-  WriteLn('          LogicB0B - Questionario');
-  WriteLn('========================================');
-  WriteLn;
+  repeat
+    Write(Pergunta);
+    ReadLn(Texto);
 
-  WriteLn('ESTRUTURA DA EMPRESA');
-  WriteLn;
+    Texto := Trim(Texto);
 
-  Write('Quantos computadores existem no total? ');
-  ReadLn(TotalComputadores);
+    if TryStrToInt(Texto, Valor) and (Valor >= 0) then
+    begin
+      Result := Valor;
+      Exit;
+    end;
 
-  Write('Quantos computadores serao utilizados como Caixa? ');
-  ReadLn(TotalCaixas);
+    WriteLn;
+    WriteLn('Valor invalido.');
+    WriteLn('Digite apenas um numero inteiro maior ou igual a zero.');
+    WriteLn;
 
-  Write('Quantos computadores serao utilizados como Retaguarda? ');
-  ReadLn(TotalRetaguardas);
-
-
-  WriteLn;
-  WriteLn('FUNCAO DESTE COMPUTADOR');
-  WriteLn;
-
-  Write('Este computador sera o servidor do banco de dados? (S/N): ');
-  ReadLn(RespostaServidor);
-
-  EhServidor := (RespostaServidor = 'S') or
-                (RespostaServidor = 's');
+  until False;
+end;
 
 
-  WriteLn;
-  WriteLn('TEF / PINPAD');
-  WriteLn;
+function LerSimNao(const Pergunta: String): Boolean;
+var
+  Resposta: String;
+begin
+  repeat
+    Write(Pergunta);
+    ReadLn(Resposta);
 
-  Write('O estabelecimento utiliza TEF? (S/N): ');
-  ReadLn(RespostaTEF);
+    Resposta := LowerCase(Trim(Resposta));
 
-  UsaTEF := (RespostaTEF = 'S') or
-            (RespostaTEF = 's');
+    if Resposta = 's' then
+    begin
+      Result := True;
+      Exit;
+    end;
 
-  if UsaTEF then
-  begin
-    Write('Quantidade de PINPads: ');
-    ReadLn(QuantidadePinPads);
-  end
-  else
-    QuantidadePinPads := 0;
+    if Resposta = 'n' then
+    begin
+      Result := False;
+      Exit;
+    end;
 
+    WriteLn;
+    WriteLn('Resposta invalida.');
+    WriteLn('Digite S para Sim ou N para Nao.');
+    WriteLn;
 
-  WriteLn;
-  WriteLn('IMPRESSORAS TERMICAS');
-  WriteLn;
-
-  Write('O estabelecimento utiliza impressoras termicas? (S/N): ');
-  ReadLn(RespostaImpressora);
-
-  UsaImpressoraTermica := (RespostaImpressora = 'S') or
-                          (RespostaImpressora = 's');
-
-  if UsaImpressoraTermica then
-  begin
-    Write('Quantidade de impressoras termicas: ');
-    ReadLn(QuantidadeImpressoras);
-
-    Write('Modelos das impressoras: ');
-    ReadLn(ModelosImpressoras);
-  end
-  else
-  begin
-    QuantidadeImpressoras := 0;
-    ModelosImpressoras := '';
-  end;
+  until False;
+end;
 
 
+procedure ColetarHardware;
+begin
   WriteLn;
   WriteLn('========================================');
   WriteLn('       DETECCAO AUTOMATICA');
@@ -225,22 +259,47 @@ begin
   WriteLn('Coletando informacoes deste computador...');
   WriteLn;
 
-
+  Write('[1/8] Fabricante do computador... ');
   FabricantePC := DetectarFabricantePC;
-  ModeloPC := DetectarModeloPC;
+  WriteLn('OK');
 
+  Write('[2/8] Modelo do computador... ');
+  ModeloPC := DetectarModeloPC;
+  WriteLn('OK');
+
+  Write('[3/8] Processador... ');
   Processador := DetectarProcessador;
+  WriteLn('OK');
+
+  Write('[4/8] Nucleos e threads... ');
   NucleosCPU := DetectarNucleosCPU;
   ThreadsCPU := DetectarThreadsCPU;
+  WriteLn('OK');
 
+  Write('[5/8] Memoria RAM... ');
   MemoriaRAM := DetectarMemoriaRAM;
+  WriteLn('OK');
 
+  Write('[6/8] Armazenamento... ');
   Armazenamento := DetectarArmazenamento;
+  WriteLn('OK');
 
+  Write('[7/8] Sistema operacional... ');
   SistemaOperacional := DetectarSistemaOperacional;
+  WriteLn('OK');
+
+  Write('[8/8] Arquitetura do sistema... ');
   ArquiteturaSO := DetectarArquiteturaSO;
+  WriteLn('OK');
+
+  WriteLn;
+  WriteLn('Coleta automatica concluida.');
+end;
 
 
+procedure ExibirResultado;
+begin
+  WriteLn;
   WriteLn('========================================');
   WriteLn('          DADOS COLETADOS');
   WriteLn('========================================');
@@ -252,12 +311,12 @@ begin
   WriteLn('Retaguardas: ', TotalRetaguardas);
 
   WriteLn;
+  WriteLn('FUNCAO DESTE COMPUTADOR');
 
   if EhServidor then
-    WriteLn('Funcao deste computador: SERVIDOR')
+    WriteLn('Funcao: SERVIDOR')
   else
-    WriteLn('Funcao deste computador: ESTACAO');
-
+    WriteLn('Funcao: ESTACAO');
 
   WriteLn;
   WriteLn('TEF / PINPAD');
@@ -270,7 +329,6 @@ begin
   else
     WriteLn('TEF: NAO');
 
-
   WriteLn;
   WriteLn('IMPRESSORAS TERMICAS');
 
@@ -282,7 +340,6 @@ begin
   end
   else
     WriteLn('Utiliza impressoras: NAO');
-
 
   WriteLn;
   WriteLn('HARDWARE DETECTADO');
@@ -307,11 +364,82 @@ begin
   WriteLn('Sistema operacional: ', SistemaOperacional);
   WriteLn('Arquitetura: ', ArquiteturaSO);
 
-
   WriteLn;
   WriteLn('========================================');
   WriteLn('Coleta concluida.');
   WriteLn('========================================');
+end;
+
+
+begin
+  WriteLn('========================================');
+  WriteLn('          LogicB0B - Questionario');
+  WriteLn('========================================');
+  WriteLn;
+
+  WriteLn('ESTRUTURA DA EMPRESA');
+  WriteLn;
+
+  TotalComputadores :=
+    LerInteiro('Quantos computadores existem no total? ');
+
+  TotalCaixas :=
+    LerInteiro('Quantos computadores serao utilizados como Caixa? ');
+
+  TotalRetaguardas :=
+    LerInteiro('Quantos computadores serao utilizados como Retaguarda? ');
+
+  WriteLn;
+  WriteLn('FUNCAO DESTE COMPUTADOR');
+  WriteLn;
+
+  EhServidor :=
+    LerSimNao(
+      'Este computador sera o servidor do banco de dados? (S/N): '
+    );
+
+  WriteLn;
+  WriteLn('TEF / PINPAD');
+  WriteLn;
+
+  UsaTEF :=
+    LerSimNao(
+      'O estabelecimento utiliza TEF? (S/N): '
+    );
+
+  if UsaTEF then
+    QuantidadePinPads :=
+      LerInteiro('Quantidade de PINPads: ')
+  else
+    QuantidadePinPads := 0;
+
+  WriteLn;
+  WriteLn('IMPRESSORAS TERMICAS');
+  WriteLn;
+
+  UsaImpressoraTermica :=
+    LerSimNao(
+      'O estabelecimento utiliza impressoras termicas? (S/N): '
+    );
+
+  if UsaImpressoraTermica then
+  begin
+    QuantidadeImpressoras :=
+      LerInteiro('Quantidade de impressoras termicas: ');
+
+    Write('Modelos das impressoras: ');
+    ReadLn(ModelosImpressoras);
+  end
+  else
+  begin
+    QuantidadeImpressoras := 0;
+    ModelosImpressoras := '';
+  end;
+
+  ColetarHardware;
+
+  ExibirResultado;
+
   WriteLn;
   WriteLn('Pressione ENTER para sair.');
   ReadLn;
