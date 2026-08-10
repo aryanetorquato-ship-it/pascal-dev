@@ -156,10 +156,8 @@ end;
 function DetectarMemoriaRAM: String;
 begin
   Result := ExecutarPowerShell(
-    '[math]::Round(' +
-    '(Get-WmiObject Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 2' +
-    ').ToString() + " GB"'
-  );
+    '[math]::Round((Get-WmiObject Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 2)'
+  ) + ' GB';
 end;
 
 
@@ -167,10 +165,15 @@ function DetectarArmazenamento: String;
 begin
   Result := ExecutarPowerShell(
     '(Get-WmiObject Win32_LogicalDisk -Filter "DriveType=3" | ' +
-    'Select-Object DeviceID, Size, FreeSpace | ' +
-    'Format-Table -AutoSize | Out-String)'
+    'ForEach-Object { ' +
+    '$letra = $_.DeviceID; ' +
+    '$total = [math]::Round($_.Size / 1GB, 2); ' +
+    '$livre = [math]::Round($_.FreeSpace / 1GB, 2); ' +
+    '"$letra - $total GB total - $livre GB livre" ' +
+    '}) -join " | "'
   );
 end;
+
 
 function DetectarSistemaOperacional: String;
 begin
