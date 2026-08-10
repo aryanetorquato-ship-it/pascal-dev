@@ -37,6 +37,34 @@ var
   SistemaOperacional: String;
   ArquiteturaSO: String;
 
+procedure GravarLogDiagnostico(const Mensagem: String);
+var
+  ArquivoLog: TextFile;
+  CaminhoLog: String;
+begin
+  CaminhoLog := GetEnvironmentVariable('USERPROFILE');
+
+  if CaminhoLog <> '' then
+    CaminhoLog := CaminhoLog + '\Desktop\LogicB0B-debug.log'
+  else
+    CaminhoLog := 'LogicB0B-debug.log';
+
+  AssignFile(ArquivoLog, CaminhoLog);
+
+  if FileExists(CaminhoLog) then
+    Append(ArquivoLog)
+  else
+    Rewrite(ArquivoLog);
+
+  try
+    WriteLn(ArquivoLog, Mensagem);
+    Flush(ArquivoLog);
+  finally
+    CloseFile(ArquivoLog);
+  end;
+end;
+
+
 function ExecutarPowerShell(const Comando: String): String;
 var
   Processo: TProcess;
@@ -60,7 +88,9 @@ begin
     if not FileExists(ExecutavelPowerShell) then
       ExecutavelPowerShell := 'powershell.exe';
 
-    Processo.Executable := ExecutavelPowerShell;
+    GravarLogDiagnostico('[LOG] Executavel encontrado: ' + ExecutavelPowerShell);
+
+Processo.Executable := ExecutavelPowerShell;
 
     Processo.Parameters.Add('-NoProfile');
     Processo.Parameters.Add('-NonInteractive');
@@ -76,7 +106,11 @@ begin
     ];
 
     try
-      Processo.Execute;
+      GravarLogDiagnostico('[LOG] Antes de Processo.Execute');
+
+Processo.Execute;
+
+GravarLogDiagnostico('[LOG] Depois de Processo.Execute');
     except
       on E: Exception do
       begin
@@ -85,7 +119,11 @@ begin
       end;
     end;
 
-    Saida.LoadFromStream(Processo.Output);
+    GravarLogDiagnostico('[LOG] Antes de LoadFromStream');
+
+Saida.LoadFromStream(Processo.Output);
+
+GravarLogDiagnostico('[LOG] Depois de LoadFromStream');
 
     Result := Trim(Saida.Text);
 
@@ -162,6 +200,7 @@ end;
 
 function DetectarArmazenamento: String;
 begin
+  GravarLogDiagnostico('[LOG] Entrou em DetectarArmazenamento');
   Result := ExecutarPowerShell(
     '(Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | ' +
     'ForEach-Object { ' +
@@ -170,6 +209,7 @@ begin
     '[math]::Round($_.FreeSpace / 1GB, 2).ToString() + " GB livre" ' +
     '}) -join " | "'
   );
+  GravarLogDiagnostico('[LOG] Saiu de DetectarArmazenamento');
 end;
 
 function DetectarSistemaOperacional: String;
