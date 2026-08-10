@@ -1,0 +1,16 @@
+# Compilação Free Pascal / Lazarus
+*.o
+*.ppu
+*.or
+*.a
+*.compiled
+*.bak
+*.~*
+*.swp
+
+# Executáveis gerados localmente
+Questionario
+Questionario.exe
+
+# Arquivos temporários
+.hello.pas.swp

@@ -21,7 +21,7 @@ jobs:
 
       - name: Compilar Questionario
         shell: cmd
-        working-directory: projetos\LogicB0B
+        working-directory: projetos\\LogicB0B
         run: |
           lazbuild Questionario.lpr
 
