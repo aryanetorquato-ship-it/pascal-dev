@@ -15,36 +15,47 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Instalar Lazarus
-        uses: gcarreno/setup-lazarus@v1
+        uses: gcarreno/setup-lazarus@v3.4.1
         with:
           lazarus-version: "3.0"
+          with-cache: false
 
-      - name: Verificar Lazarus
+      - name: Localizar Lazarus
         shell: powershell
         run: |
-          $lazbuild = Get-Command lazbuild.exe -ErrorAction SilentlyContinue
+          $paths = @(
+            "C:\lazarus",
+            "C:\Program Files\Lazarus",
+            "C:\Program Files (x86)\Lazarus"
+          )
+
+          $lazbuild = $null
+
+          foreach ($path in $paths) {
+            if (Test-Path $path) {
+              $found = Get-ChildItem -Path $path -Filter "lazbuild.exe" -Recurse -File -ErrorAction SilentlyContinue |
+                Select-Object -First 1
+
+              if ($found) {
+                $lazbuild = $found.FullName
+                break
+              }
+            }
+          }
+
           if (-not $lazbuild) {
-            Write-Host "lazbuild.exe nao encontrado no PATH."
+            Write-Host "lazbuild.exe nao encontrado."
             exit 1
           }
-          Write-Host "lazbuild encontrado em: $($lazbuild.Source)"
-          lazbuild.exe --version
+
+          Write-Host "Lazbuild encontrado em: $lazbuild"
+          "LAZBUILD=$lazbuild" >> $env:GITHUB_ENV
 
       - name: Compilar Questionario
-        shell: cmd
-        working-directory: projetos\LogicB0B
-        run: |
-          lazbuild Questionario.lpr
-
-      - name: Verificar EXE
         shell: powershell
         working-directory: projetos/LogicB0B
         run: |
-          if (-not (Test-Path "Questionario.exe")) {
-            Write-Host "Questionario.exe nao foi gerado."
-            exit 1
-          }
-          Get-Item "Questionario.exe"
+          & "$env:LAZBUILD" Questionario.lpr
 
       - name: Publicar EXE
         uses: actions/upload-artifact@v4
