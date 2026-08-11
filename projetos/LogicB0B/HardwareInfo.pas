@@ -170,15 +170,8 @@ begin
 end;
 
 function DetectarSistemaOperacional: String;
-var
-  Nome, Versao: String;
 begin
-  Nome := LerRegistroWindows('SOFTWARE\Microsoft\Windows NT\CurrentVersion', 'ProductName');
-  Versao := LerRegistroWindows('SOFTWARE\Microsoft\Windows NT\CurrentVersion', 'CurrentVersion');
-
-  Result := Nome;
-  if (Result <> '') and (Versao <> '') then
-    Result := Result + ' (NT ' + Versao + ')';
+  Result := LerRegistroWindows('SOFTWARE\Microsoft\Windows NT\CurrentVersion', 'ProductName');
 
   if Result = '' then
     Result := 'Nao informado';
