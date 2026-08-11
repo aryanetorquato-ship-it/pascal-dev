@@ -152,8 +152,8 @@ begin
   RgPapelComputador.Height := 100;
   RgPapelComputador.Caption := 'Papel deste computador:';
   RgPapelComputador.Items.Add('Servidor');
-  RgPapelComputador.Items.Add('PDV / Retaguarda');
-  RgPapelComputador.Items.Add('Caixa / Frente');
+  RgPapelComputador.Items.Add('Retaguarda / ADM');
+  RgPapelComputador.Items.Add('Caixa / PDV');
   RgPapelComputador.ItemIndex := 2;
   Inc(Y, 108);
 
