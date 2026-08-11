@@ -104,25 +104,27 @@ begin
 
   EdtTotalComputadores := TEdit.Create(Self);
   EdtTotalComputadores.Parent := Self;
-  EdtTotalComputadores.Left := 16;
+  EdtTotalComputadores.Left := 150;
   EdtTotalComputadores.Top := Y;
   EdtTotalComputadores.Width := 100;
   EdtTotalComputadores.Text := '0';
 
+  Inc(Y, 32);
+
   Lbl := TLabel.Create(Self);
   Lbl.Parent := Self;
-  Lbl.Left := 140;
+  Lbl.Left := 16;
   Lbl.Top := Y + 3;
   Lbl.Caption := 'Caixas / PDVs:';
 
   EdtCaixas := TEdit.Create(Self);
   EdtCaixas.Parent := Self;
-  EdtCaixas.Left := 250;
+  EdtCaixas.Left := 150;
   EdtCaixas.Top := Y;
-  EdtCaixas.Width := 70;
+  EdtCaixas.Width := 100;
   EdtCaixas.Text := '0';
 
-  Inc(Y, 28);
+  Inc(Y, 32);
 
   Lbl := TLabel.Create(Self);
   Lbl.Parent := Self;
@@ -132,12 +134,12 @@ begin
 
   EdtRetaguardas := TEdit.Create(Self);
   EdtRetaguardas.Parent := Self;
-  EdtRetaguardas.Left := 120;
+  EdtRetaguardas.Left := 150;
   EdtRetaguardas.Top := Y;
-  EdtRetaguardas.Width := 70;
+  EdtRetaguardas.Width := 100;
   EdtRetaguardas.Text := '0';
 
-  Inc(Y, 28);
+  Inc(Y, 34);
 
   ChkServidor := TCheckBox.Create(Self);
   ChkServidor.Parent := Self;
@@ -227,18 +229,18 @@ begin
   MemoObservacoes.Height := 100;
   MemoObservacoes.ScrollBars := ssVertical;
   MemoObservacoes.OnChange := @MemoObservacoesChange;
-  Inc(Y, 106);
+  Inc(Y, 130);
 
   LblContadorObs := TLabel.Create(Self);
   LblContadorObs.Parent := Self;
   LblContadorObs.Left := 16;
   LblContadorObs.Top := Y;
   LblContadorObs.Width := LARGURA_FORM - 32;
-  LblContadorObs.Height := 18;
+  LblContadorObs.Height := 20;
   LblContadorObs.AutoSize := False;
   LblContadorObs.Caption := '1500 caracteres restantes';
   LblContadorObs.Font.Color := clGray;
-  Inc(Y, 30);
+  Inc(Y, 40);
 
   LblStatus := TLabel.Create(Self);
   LblStatus.Parent := Self;
@@ -249,7 +251,7 @@ begin
   LblStatus.AutoSize := False;
   LblStatus.Caption := '';
   LblStatus.Font.Color := clNavy;
-  Inc(Y, 36);
+  Inc(Y, 40);
 
   BtnGerar := TButton.Create(Self);
   BtnGerar.Parent := Self;
