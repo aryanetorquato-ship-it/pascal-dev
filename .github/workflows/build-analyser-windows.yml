@@ -1,0 +1,50 @@
+name: Build LogicB0B Analyser
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - name: Baixar codigo
+        uses: actions/checkout@v4
+      - name: Instalar Lazarus
+        uses: gcarreno/setup-lazarus@v3.4.1
+        with:
+          lazarus-version: "3.0"
+          with-cache: true
+      - name: Compilar Analyser
+        shell: powershell
+        working-directory: projetos/LogicB0BAnalyser
+        run: |
+          $fpc = Get-Command fpc.exe -ErrorAction SilentlyContinue
+          if (-not $fpc) {
+            Write-Host "ERRO: fpc.exe nao encontrado no PATH."
+            exit 1
+          }
+          $fpcExe = $fpc.Source
+          $lazarusBase = (Get-Item $fpcExe).Directory.Parent.Parent.Parent.Parent.FullName
+          $lcl = "$lazarusBase\lcl\units\x86_64-win64"
+          $win = "$lazarusBase\lcl\units\x86_64-win64\win32"
+          $laz = "$lazarusBase\components\lazutils\lib\x86_64-win64"
+          & $fpcExe -Twin64 -O2 "-Fu$lcl" "-Fu$win" "-Fu$laz" Analyser.lpr
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "ERRO: compilacao falhou."
+            exit 1
+          }
+      - name: Verificar EXE
+        shell: powershell
+        working-directory: projetos/LogicB0BAnalyser
+        run: |
+          if (-not (Test-Path "Analyser.exe")) {
+            Write-Host "ERRO: Analyser.exe nao foi gerado."
+            exit 1
+          }
+          Write-Host "Analyser.exe gerado com sucesso."
+      - name: Publicar EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: LogicB0B-Analyser
+          path: projetos/LogicB0BAnalyser/Analyser.exe
