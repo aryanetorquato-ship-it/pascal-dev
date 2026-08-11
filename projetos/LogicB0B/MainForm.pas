@@ -32,6 +32,8 @@ type
     procedure ChkTEFChange(Sender: TObject);
     procedure ChkImpressorasChange(Sender: TObject);
     procedure MemoObservacoesChange(Sender: TObject);
+    procedure MemoObservacoesKeyUp(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
     procedure BtnGerarClick(Sender: TObject);
     procedure BtnEncerrarClick(Sender: TObject);
 
@@ -229,6 +231,7 @@ begin
   MemoObservacoes.Height := 100;
   MemoObservacoes.ScrollBars := ssVertical;
   MemoObservacoes.OnChange := @MemoObservacoesChange;
+  MemoObservacoes.OnKeyUp := @MemoObservacoesKeyUp;
   Inc(Y, 130);
 
   LblContadorObs := TLabel.Create(Self);
@@ -302,6 +305,12 @@ begin
   LblContadorObs.Caption :=
     IntToStr(1500 - Length(MemoObservacoes.Text)) +
     ' caracteres restantes';
+end;
+
+procedure TfrmMain.MemoObservacoesKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  MemoObservacoesChange(Sender);
 end;
 
 function TfrmMain.ValidarInteiro(const Texto, NomeCampo: String;
