@@ -25,22 +25,19 @@ jobs:
           $hora = Get-Date -Format "yyyyMMdd_HHmm"
           $buildId = "$sha-$hora"
           Write-Host "Build ID: $buildId"
-
-          $conteudo = @"
-unit BuildInfo;
-
-{`$mode objfpc}{`$H+}
-
-interface
-
-const
-  BUILD_ID = '$buildId';
-
-implementation
-
-end.
-"@
-          Set-Content -Path "BuildInfo.pas" -Value $conteudo -Encoding UTF8
+          $linhas = @(
+            "unit BuildInfo;",
+            "",
+            "interface",
+            "",
+            "const",
+            "  BUILD_ID = '$buildId';",
+            "",
+            "implementation",
+            "",
+            "end."
+          )
+          Set-Content -Path "BuildInfo.pas" -Value $linhas -Encoding UTF8
 
       - name: Compilar Questionario
         shell: powershell
