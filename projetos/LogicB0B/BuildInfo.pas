@@ -1,7 +1,5 @@
 unit BuildInfo;
 
-{$mode objfpc}{$H+}
-
 interface
 
 const
