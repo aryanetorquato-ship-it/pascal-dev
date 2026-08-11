@@ -117,7 +117,7 @@ begin
 
   EdtCaixas := TEdit.Create(Self);
   EdtCaixas.Parent := Self;
-  EdtCaixas.Left := 190;
+  EdtCaixas.Left := 250;
   EdtCaixas.Top := Y;
   EdtCaixas.Width := 70;
   EdtCaixas.Text := '0';
@@ -233,20 +233,23 @@ begin
   LblContadorObs.Parent := Self;
   LblContadorObs.Left := 16;
   LblContadorObs.Top := Y;
-  LblContadorObs.AutoSize := True;
+  LblContadorObs.Width := LARGURA_FORM - 32;
+  LblContadorObs.Height := 18;
+  LblContadorObs.AutoSize := False;
   LblContadorObs.Caption := '1500 caracteres restantes';
   LblContadorObs.Font.Color := clGray;
-  Inc(Y, 24);
+  Inc(Y, 30);
 
   LblStatus := TLabel.Create(Self);
   LblStatus.Parent := Self;
   LblStatus.Left := 16;
   LblStatus.Top := Y;
   LblStatus.Width := LARGURA_FORM - 32;
+  LblStatus.Height := 20;
   LblStatus.AutoSize := False;
   LblStatus.Caption := '';
   LblStatus.Font.Color := clNavy;
-  Inc(Y, 32);
+  Inc(Y, 36);
 
   BtnGerar := TButton.Create(Self);
   BtnGerar.Parent := Self;
