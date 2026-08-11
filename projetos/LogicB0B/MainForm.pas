@@ -16,7 +16,7 @@ type
     EdtTotalComputadores: TEdit;
     EdtCaixas: TEdit;
     EdtRetaguardas: TEdit;
-    ChkServidor: TCheckBox;
+    RgPapelComputador: TRadioGroup;
     ChkTEF: TCheckBox;
     EdtPinPads: TEdit;
     ChkImpressoras: TCheckBox;
@@ -144,13 +144,18 @@ begin
 
   Inc(Y, 34);
 
-  ChkServidor := TCheckBox.Create(Self);
-  ChkServidor.Parent := Self;
-  ChkServidor.Left := 16;
-  ChkServidor.Top := Y;
-  ChkServidor.Width := LARGURA_FORM - 32;
-  ChkServidor.Caption := 'Este computador sera o servidor do banco de dados';
-  Inc(Y, 34);
+  RgPapelComputador := TRadioGroup.Create(Self);
+  RgPapelComputador.Parent := Self;
+  RgPapelComputador.Left := 16;
+  RgPapelComputador.Top := Y;
+  RgPapelComputador.Width := LARGURA_FORM - 32;
+  RgPapelComputador.Height := 100;
+  RgPapelComputador.Caption := 'Papel deste computador:';
+  RgPapelComputador.Items.Add('Servidor');
+  RgPapelComputador.Items.Add('PDV / Retaguarda');
+  RgPapelComputador.Items.Add('Caixa / Frente');
+  RgPapelComputador.ItemIndex := 2;
+  Inc(Y, 108);
 
   ChkTEF := TCheckBox.Create(Self);
   ChkTEF.Parent := Self;
@@ -447,7 +452,13 @@ begin
     Pacote.Add('TotalComputadores=' + IntToStr(TotalComputadores));
     Pacote.Add('Caixas=' + IntToStr(Caixas));
     Pacote.Add('Retaguardas=' + IntToStr(Retaguardas));
-    Pacote.Add('EhServidor=' + BoolToStr(ChkServidor.Checked, 'S', 'N'));
+    case RgPapelComputador.ItemIndex of
+      0: Pacote.Add('PapelComputador=Servidor');
+      1: Pacote.Add('PapelComputador=PDV_Retaguarda');
+      2: Pacote.Add('PapelComputador=Caixa');
+    else
+      Pacote.Add('PapelComputador=Caixa');
+    end;
     Pacote.Add('UtilizaTEF=' + BoolToStr(ChkTEF.Checked, 'S', 'N'));
     Pacote.Add('QtdPinPads=' + IntToStr(PinPads));
     Pacote.Add('UtilizaImpressoras=' + BoolToStr(ChkImpressoras.Checked, 'S', 'N'));

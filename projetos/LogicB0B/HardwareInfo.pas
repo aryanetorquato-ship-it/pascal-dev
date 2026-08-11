@@ -206,6 +206,31 @@ end;
 {$ENDIF}
 end;
 
+function DetectarVersaoWindows: String;
+begin
+  Result := LerRegistroWindows(
+    'SOFTWARE\Microsoft\Windows NT\CurrentVersion',
+    'DisplayVersion'
+  );
+  if Result = '' then
+    Result := 'Nao informado';
+end;
+
+function DetectarResolucaoTela: String;
+{$IFDEF WINDOWS}
+var
+  Largura, Altura: Integer;
+{$ENDIF}
+begin
+  Result := 'Nao informado';
+{$IFDEF WINDOWS}
+  Largura := GetSystemMetrics(SM_CXSCREEN);
+  Altura := GetSystemMetrics(SM_CYSCREEN);
+  if (Largura > 0) and (Altura > 0) then
+    Result := IntToStr(Largura) + 'x' + IntToStr(Altura);
+{$ENDIF}
+end;
+
 function ColetarHardware: TStringList;
 begin
   Result := TStringList.Create;
@@ -217,6 +242,8 @@ begin
   Result.Add('MemoriaRAM=' + DetectarMemoriaRAM);
   Result.Add('Armazenamento=' + DetectarArmazenamento);
   Result.Add('SistemaOperacional=' + DetectarSistemaOperacional);
+  Result.Add('VersaoWindows=' + DetectarVersaoWindows);
+  Result.Add('ResolucaoTela=' + DetectarResolucaoTela);
   Result.Add('Arquitetura=' + DetectarArquitetura);
 end;
 
