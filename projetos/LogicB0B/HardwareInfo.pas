@@ -16,6 +16,32 @@ uses
 function ColetarHardware: TStringList;
 
 implementation
+{$IFDEF WINDOWS}
+
+type
+  TMemoryStatusExCompat = record
+    dwLength: DWORD;
+    dwMemoryLoad: DWORD;
+    ullTotalPhys: QWord;
+    ullAvailPhys: QWord;
+    ullTotalPageFile: QWord;
+    ullAvailPageFile: QWord;
+    ullTotalVirtual: QWord;
+    ullAvailVirtual: QWord;
+    ullAvailExtendedVirtual: QWord;
+  end;
+
+function GlobalMemoryStatusExCompat(
+  var lpBuffer: TMemoryStatusExCompat
+): BOOL; stdcall; external 'kernel32' name 'GlobalMemoryStatusEx';
+
+const
+  PROCESSOR_ARCHITECTURE_INTEL_COMPAT = 0;
+  PROCESSOR_ARCHITECTURE_ARM_COMPAT    = 5;
+  PROCESSOR_ARCHITECTURE_AMD64_COMPAT  = 9;
+  PROCESSOR_ARCHITECTURE_ARM64_COMPAT  = 12;
+
+{$ENDIF}
 
 function LerRegistroWindows(const Chave, Valor: String): String;
 {$IFDEF WINDOWS}
@@ -71,7 +97,7 @@ var
 begin
   Result := 'Nao informado';
 {$IFDEF WINDOWS}
-  GetNativeSystemInfo(Info);
+  GetNativeSystemInfo(@Info);
   if Info.dwNumberOfProcessors > 0 then
     Result := IntToStr(Info.dwNumberOfProcessors);
 {$ENDIF}
@@ -80,16 +106,18 @@ end;
 function DetectarMemoriaRAM: String;
 {$IFDEF WINDOWS}
 var
-  Memoria: TMemoryStatusEx;
+  Memoria: TMemoryStatusExCompat;
 {$ENDIF}
 begin
   Result := 'Nao informado';
+
 {$IFDEF WINDOWS}
   FillChar(Memoria, SizeOf(Memoria), 0);
   Memoria.dwLength := SizeOf(Memoria);
 
-  if GlobalMemoryStatusEx(Memoria) then
-    Result := FormatFloat('0.00', Memoria.ullTotalPhys / 1073741824.0) + ' GB';
+  if GlobalMemoryStatusExCompat(Memoria) then
+    Result := FormatFloat('0.00',
+      Memoria.ullTotalPhys / 1073741824.0) + ' GB';
 {$ENDIF}
 end;
 
@@ -164,16 +192,17 @@ var
 begin
   Result := 'Nao informado';
 {$IFDEF WINDOWS}
-  GetNativeSystemInfo(Info);
+  GetNativeSystemInfo(@Info);
 
-  case Info.wProcessorArchitecture of
-    PROCESSOR_ARCHITECTURE_AMD64: Result := 'x64';
-    PROCESSOR_ARCHITECTURE_INTEL: Result := 'x86';
-    PROCESSOR_ARCHITECTURE_ARM64: Result := 'ARM64';
-    PROCESSOR_ARCHITECTURE_ARM:   Result := 'ARM';
-  else
-    Result := 'Desconhecida';
-  end;
+case Info.wProcessorArchitecture of
+  PROCESSOR_ARCHITECTURE_AMD64_COMPAT: Result := 'x64';
+  PROCESSOR_ARCHITECTURE_INTEL_COMPAT: Result := 'x86';
+  PROCESSOR_ARCHITECTURE_ARM64_COMPAT: Result := 'ARM64';
+  PROCESSOR_ARCHITECTURE_ARM_COMPAT:   Result := 'ARM';
+else
+  Result := 'Desconhecida';
+end;
+
 {$ENDIF}
 end;
 
