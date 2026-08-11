@@ -26,15 +26,24 @@ jobs:
             Write-Host "ERRO: fpc.exe nao encontrado no PATH."
             exit 1
           }
-          Write-Host "fpc encontrado: $($fpc.Source)"
+          $fpcExe = $fpc.Source
+          Write-Host "fpc encontrado: $fpcExe"
 
-          $lazarusBase = "C:\lazarus"
-          $lcl  = "$lazarusBase\lcl\units\x86_64-win64"
-          $win  = "$lazarusBase\lcl\units\x86_64-win64\win32"
-          $laz  = "$lazarusBase\components\lazutils\lib\x86_64-win64"
+          # Descobrir a pasta base do Lazarus a partir do caminho do fpc.exe
+          # Estrutura: <lazarusBase>\fpc\3.2.2\bin\x86_64-win64\fpc.exe
+          $lazarusBase = (Get-Item $fpcExe).Directory.Parent.Parent.Parent.Parent.FullName
+          Write-Host "Lazarus base: $lazarusBase"
+
+          $lcl = "$lazarusBase\lcl\units\x86_64-win64"
+          $win = "$lazarusBase\lcl\units\x86_64-win64\win32"
+          $laz = "$lazarusBase\components\lazutils\lib\x86_64-win64"
+
+          Write-Host "LCL path: $lcl"
+          Write-Host "WIN path: $win"
+          Write-Host "LAZ path: $laz"
 
           Write-Host "Compilando Questionario.lpr para Windows x64..."
-          fpc.exe -Twin64 -O2 `
+          & $fpcExe -Twin64 -O2 `
             "-Fu$lcl" `
             "-Fu$win" `
             "-Fu$laz" `
