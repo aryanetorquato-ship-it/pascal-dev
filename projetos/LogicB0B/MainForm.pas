@@ -23,7 +23,6 @@ type
     EdtQtdImpressoras: TEdit;
     MemoModelosImpressoras: TMemo;
     MemoObservacoes: TMemo;
-    LblContadorObs: TLabel;
     LblStatus: TLabel;
     BtnGerar: TButton;
     BtnEncerrar: TButton;
@@ -54,7 +53,7 @@ implementation
 
 const
   LARGURA_FORM = 480;
-  ALTURA_FORM = 760;
+  ALTURA_FORM = 560;
 
 constructor TfrmMain.CreateNew(AOwner: TComponent; Num: Integer);
 begin
@@ -101,18 +100,17 @@ begin
   Lbl := TLabel.Create(Self);
   Lbl.Parent := Self;
   Lbl.Left := 16;
-  Lbl.Top := Y;
-  Lbl.Caption := 'Total de computadores (equipamentos fisicos):';
-  Inc(Y, 18);
+  Lbl.Top := Y + 3;
+  Lbl.Caption := 'Total de computadores:';
 
   EdtTotalComputadores := TEdit.Create(Self);
   EdtTotalComputadores.Parent := Self;
-  EdtTotalComputadores.Left := 150;
+  EdtTotalComputadores.Left := 180;
   EdtTotalComputadores.Top := Y;
-  EdtTotalComputadores.Width := 100;
+  EdtTotalComputadores.Width := 80;
   EdtTotalComputadores.Text := '0';
 
-  Inc(Y, 32);
+  Inc(Y, 28);
 
   Lbl := TLabel.Create(Self);
   Lbl.Parent := Self;
@@ -122,12 +120,12 @@ begin
 
   EdtCaixas := TEdit.Create(Self);
   EdtCaixas.Parent := Self;
-  EdtCaixas.Left := 150;
+  EdtCaixas.Left := 180;
   EdtCaixas.Top := Y;
-  EdtCaixas.Width := 100;
+  EdtCaixas.Width := 80;
   EdtCaixas.Text := '0';
 
-  Inc(Y, 32);
+  Inc(Y, 28);
 
   Lbl := TLabel.Create(Self);
   Lbl.Parent := Self;
@@ -137,12 +135,12 @@ begin
 
   EdtRetaguardas := TEdit.Create(Self);
   EdtRetaguardas.Parent := Self;
-  EdtRetaguardas.Left := 150;
+  EdtRetaguardas.Left := 180;
   EdtRetaguardas.Top := Y;
-  EdtRetaguardas.Width := 100;
+  EdtRetaguardas.Width := 80;
   EdtRetaguardas.Text := '0';
 
-  Inc(Y, 34);
+  Inc(Y, 30);
 
   RgPapelComputador := TRadioGroup.Create(Self);
   RgPapelComputador.Parent := Self;
@@ -238,18 +236,9 @@ begin
   MemoObservacoes.ScrollBars := ssVertical;
   MemoObservacoes.OnChange := @MemoObservacoesChange;
   MemoObservacoes.OnKeyUp := @MemoObservacoesKeyUp;
-  Inc(Y, 130);
-
-  LblContadorObs := TLabel.Create(Self);
-  LblContadorObs.Parent := Self;
-  LblContadorObs.Left := 16;
-  LblContadorObs.Top := Y;
-  LblContadorObs.Width := LARGURA_FORM - 32;
-  LblContadorObs.Height := 20;
-  LblContadorObs.AutoSize := False;
-  LblContadorObs.Caption := 'Max 1500 caracteres';
-  LblContadorObs.Font.Color := clGray;
-  Inc(Y, 40);
+  MemoObservacoes.Hint := 'Max 1500 caracteres';
+  MemoObservacoes.ShowHint := True;
+  Inc(Y, 108);
 
   LblStatus := TLabel.Create(Self);
   LblStatus.Parent := Self;
@@ -260,7 +249,7 @@ begin
   LblStatus.AutoSize := False;
   LblStatus.Caption := '';
   LblStatus.Font.Color := clNavy;
-  Inc(Y, 40);
+  Inc(Y, 34);
 
   BtnGerar := TButton.Create(Self);
   BtnGerar.Parent := Self;
@@ -270,7 +259,7 @@ begin
   BtnGerar.Height := 36;
   BtnGerar.Caption := 'Gerar Relatorio';
   BtnGerar.OnClick := @BtnGerarClick;
-  Inc(Y, 46);
+  Inc(Y, 42);
 
   BtnEncerrar := TButton.Create(Self);
   BtnEncerrar.Parent := Self;
