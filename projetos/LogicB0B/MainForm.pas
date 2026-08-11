@@ -1,3 +1,4 @@
+
 unit MainForm;
 
 {$mode objfpc}{$H+}
@@ -91,6 +92,7 @@ begin
   EdtEstabelecimento.Left := 16;
   EdtEstabelecimento.Top := Y;
   EdtEstabelecimento.Width := LARGURA_FORM - 32;
+  EdtEstabelecimento.MaxLength := 120;
   Inc(Y, 34);
 
   Lbl := TLabel.Create(Self);
@@ -120,19 +122,22 @@ begin
   EdtCaixas.Width := 70;
   EdtCaixas.Text := '0';
 
+  Inc(Y, 28);
+
   Lbl := TLabel.Create(Self);
   Lbl.Parent := Self;
-  Lbl.Left := 280;
+  Lbl.Left := 16;
   Lbl.Top := Y + 3;
-  Lbl.Caption := 'Retaguarda:';
+  Lbl.Caption := 'Retaguarda / ADM:';
 
   EdtRetaguardas := TEdit.Create(Self);
   EdtRetaguardas.Parent := Self;
-  EdtRetaguardas.Left := 350;
+  EdtRetaguardas.Left := 120;
   EdtRetaguardas.Top := Y;
   EdtRetaguardas.Width := 70;
   EdtRetaguardas.Text := '0';
-  Inc(Y, 40);
+
+  Inc(Y, 28);
 
   ChkServidor := TCheckBox.Create(Self);
   ChkServidor.Parent := Self;
@@ -228,7 +233,9 @@ begin
   LblContadorObs.Parent := Self;
   LblContadorObs.Left := 16;
   LblContadorObs.Top := Y;
-  LblContadorObs.AutoSize := True;
+  LblContadorObs.Width := LARGURA_FORM - 32;
+  LblContadorObs.Height := 18;
+  LblContadorObs.AutoSize := False;
   LblContadorObs.Caption := '1500 caracteres restantes';
   LblContadorObs.Font.Color := clGray;
   Inc(Y, 24);
