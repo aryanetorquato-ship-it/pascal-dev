@@ -20,20 +20,30 @@ type
     EdtPinPads: TEdit;
     ChkImpressoras: TCheckBox;
     EdtQtdImpressoras: TEdit;
-    EdtModelosImpressoras: TEdit;
+    EdtModeloImpressora1: TEdit;
+    EdtModeloImpressora2: TEdit;
+    EdtModeloImpressora3: TEdit;
+    EdtModeloImpressora4: TEdit;
+    EdtModeloImpressora5: TEdit;
+    EdtModeloImpressora6: TEdit;
     MemoObservacoes: TMemo;
     LblContadorObs: TLabel;
     LblStatus: TLabel;
     BtnGerar: TButton;
+    BtnEncerrar: TButton;
 
     procedure FormCreate(Sender: TObject);
     procedure ChkTEFChange(Sender: TObject);
     procedure ChkImpressorasChange(Sender: TObject);
     procedure MemoObservacoesChange(Sender: TObject);
     procedure BtnGerarClick(Sender: TObject);
+    procedure BtnEncerrarClick(Sender: TObject);
 
-    function ValidarInteiro(const Texto, NomeCampo: String; out Valor: Integer): Boolean;
+    function ValidarInteiro(const Texto, NomeCampo: String;
+      out Valor: Integer): Boolean;
     function SanitizarNomeArquivo(const Nome: String): String;
+    function ObterModelosImpressoras: String;
+    function ValidarModelosImpressoras: Boolean;
   public
     procedure MontarInterface;
     constructor CreateNew(AOwner: TComponent; Num: Integer = 0); override;
@@ -46,6 +56,7 @@ implementation
 
 const
   LARGURA_FORM = 480;
+  ALTURA_FORM = 760;
 
 constructor TfrmMain.CreateNew(AOwner: TComponent; Num: Integer);
 begin
@@ -61,15 +72,18 @@ end;
 procedure TfrmMain.MontarInterface;
 var
   Y: Integer;
+  I: Integer;
   Lbl: TLabel;
+  Modelo: TEdit;
 begin
   Caption := 'LogicB0B Questionario';
   Width := LARGURA_FORM;
-  Height := 640;
+  Height := ALTURA_FORM;
   Position := poScreenCenter;
   BorderStyle := bsSingle;
   BorderIcons := [biSystemMenu];
   ShowInTaskBar := stAlways;
+
   Y := 16;
 
   Lbl := TLabel.Create(Self);
@@ -183,15 +197,37 @@ begin
   Lbl.Parent := Self;
   Lbl.Left := 190;
   Lbl.Top := Y + 3;
-  Lbl.Caption := 'Modelos:';
+  Lbl.Caption := 'Modelos (ate 6 diferentes):';
+  Inc(Y, 24);
 
-  EdtModelosImpressoras := TEdit.Create(Self);
-  EdtModelosImpressoras.Parent := Self;
-  EdtModelosImpressoras.Left := 250;
-  EdtModelosImpressoras.Top := Y;
-  EdtModelosImpressoras.Width := LARGURA_FORM - 266;
-  EdtModelosImpressoras.Enabled := False;
-  Inc(Y, 40);
+  for I := 1 to 6 do
+  begin
+    Lbl := TLabel.Create(Self);
+    Lbl.Parent := Self;
+    Lbl.Left := 16;
+    Lbl.Top := Y + 3;
+    Lbl.Caption := 'Modelo ' + IntToStr(I) + ':';
+
+    Modelo := TEdit.Create(Self);
+    Modelo.Parent := Self;
+    Modelo.Left := 82;
+    Modelo.Top := Y;
+    Modelo.Width := LARGURA_FORM - 98;
+    Modelo.Enabled := False;
+
+    case I of
+      1: EdtModeloImpressora1 := Modelo;
+      2: EdtModeloImpressora2 := Modelo;
+      3: EdtModeloImpressora3 := Modelo;
+      4: EdtModeloImpressora4 := Modelo;
+      5: EdtModeloImpressora5 := Modelo;
+      6: EdtModeloImpressora6 := Modelo;
+    end;
+
+    Inc(Y, 28);
+  end;
+
+  Inc(Y, 8);
 
   Lbl := TLabel.Create(Self);
   Lbl.Parent := Self;
@@ -214,18 +250,20 @@ begin
   LblContadorObs.Parent := Self;
   LblContadorObs.Left := 16;
   LblContadorObs.Top := Y;
+  LblContadorObs.AutoSize := True;
   LblContadorObs.Caption := '0 / 1500 caracteres';
   LblContadorObs.Font.Color := clGray;
-  Inc(Y, 30);
+  Inc(Y, 24);
 
   LblStatus := TLabel.Create(Self);
   LblStatus.Parent := Self;
   LblStatus.Left := 16;
   LblStatus.Top := Y;
   LblStatus.Width := LARGURA_FORM - 32;
+  LblStatus.AutoSize := False;
   LblStatus.Caption := '';
   LblStatus.Font.Color := clNavy;
-  Inc(Y, 30);
+  Inc(Y, 32);
 
   BtnGerar := TButton.Create(Self);
   BtnGerar.Parent := Self;
@@ -233,13 +271,25 @@ begin
   BtnGerar.Top := Y;
   BtnGerar.Width := LARGURA_FORM - 32;
   BtnGerar.Height := 36;
-  BtnGerar.Caption := 'Gerar Despacho';
+  BtnGerar.Caption := 'Gerar Relatorio';
   BtnGerar.OnClick := @BtnGerarClick;
+  Inc(Y, 46);
+
+  BtnEncerrar := TButton.Create(Self);
+  BtnEncerrar.Parent := Self;
+  BtnEncerrar.Left := 16;
+  BtnEncerrar.Top := Y;
+  BtnEncerrar.Width := LARGURA_FORM - 32;
+  BtnEncerrar.Height := 36;
+  BtnEncerrar.Caption := 'Encerrar Questionario';
+  BtnEncerrar.Enabled := False;
+  BtnEncerrar.OnClick := @BtnEncerrarClick;
 end;
 
 procedure TfrmMain.ChkTEFChange(Sender: TObject);
 begin
   EdtPinPads.Enabled := ChkTEF.Checked;
+
   if not ChkTEF.Checked then
     EdtPinPads.Text := '0';
 end;
@@ -247,11 +297,23 @@ end;
 procedure TfrmMain.ChkImpressorasChange(Sender: TObject);
 begin
   EdtQtdImpressoras.Enabled := ChkImpressoras.Checked;
-  EdtModelosImpressoras.Enabled := ChkImpressoras.Checked;
+
+  EdtModeloImpressora1.Enabled := ChkImpressoras.Checked;
+  EdtModeloImpressora2.Enabled := ChkImpressoras.Checked;
+  EdtModeloImpressora3.Enabled := ChkImpressoras.Checked;
+  EdtModeloImpressora4.Enabled := ChkImpressoras.Checked;
+  EdtModeloImpressora5.Enabled := ChkImpressoras.Checked;
+  EdtModeloImpressora6.Enabled := ChkImpressoras.Checked;
+
   if not ChkImpressoras.Checked then
   begin
     EdtQtdImpressoras.Text := '0';
-    EdtModelosImpressoras.Text := '';
+    EdtModeloImpressora1.Text := '';
+    EdtModeloImpressora2.Text := '';
+    EdtModeloImpressora3.Text := '';
+    EdtModeloImpressora4.Text := '';
+    EdtModeloImpressora5.Text := '';
+    EdtModeloImpressora6.Text := '';
   end;
 end;
 
@@ -259,14 +321,85 @@ procedure TfrmMain.MemoObservacoesChange(Sender: TObject);
 begin
   if Length(MemoObservacoes.Text) > 1500 then
     MemoObservacoes.Text := Copy(MemoObservacoes.Text, 1, 1500);
-  LblContadorObs.Caption := IntToStr(Length(MemoObservacoes.Text)) + ' / 1500 caracteres';
+
+  LblContadorObs.Caption :=
+    IntToStr(Length(MemoObservacoes.Text)) + ' / 1500 caracteres';
 end;
 
-function TfrmMain.ValidarInteiro(const Texto, NomeCampo: String; out Valor: Integer): Boolean;
+function TfrmMain.ValidarInteiro(const Texto, NomeCampo: String;
+  out Valor: Integer): Boolean;
 begin
   Result := TryStrToInt(Trim(Texto), Valor) and (Valor >= 0);
+
   if not Result then
-    ShowMessage('Campo "' + NomeCampo + '" precisa ser um numero inteiro maior ou igual a zero.');
+    ShowMessage('Campo "' + NomeCampo +
+      '" precisa ser um numero inteiro maior ou igual a zero.');
+end;
+
+function TfrmMain.ObterModelosImpressoras: String;
+var
+  Modelos: array[1..6] of String;
+  I: Integer;
+begin
+  Modelos[1] := Trim(EdtModeloImpressora1.Text);
+  Modelos[2] := Trim(EdtModeloImpressora2.Text);
+  Modelos[3] := Trim(EdtModeloImpressora3.Text);
+  Modelos[4] := Trim(EdtModeloImpressora4.Text);
+  Modelos[5] := Trim(EdtModeloImpressora5.Text);
+  Modelos[6] := Trim(EdtModeloImpressora6.Text);
+
+  Result := '';
+
+  for I := 1 to 6 do
+  begin
+    if Modelos[I] <> '' then
+    begin
+      if Result <> '' then
+        Result := Result + ' | ';
+
+      Result := Result + Modelos[I];
+    end;
+  end;
+end;
+
+function TfrmMain.ValidarModelosImpressoras: Boolean;
+var
+  Modelos: array[1..6] of String;
+  I, J: Integer;
+begin
+  Result := False;
+
+  Modelos[1] := Trim(EdtModeloImpressora1.Text);
+  Modelos[2] := Trim(EdtModeloImpressora2.Text);
+  Modelos[3] := Trim(EdtModeloImpressora3.Text);
+  Modelos[4] := Trim(EdtModeloImpressora4.Text);
+  Modelos[5] := Trim(EdtModeloImpressora5.Text);
+  Modelos[6] := Trim(EdtModeloImpressora6.Text);
+
+  if Modelos[1] = '' then
+  begin
+    ShowMessage('Informe pelo menos um modelo de impressora termica.');
+    Exit;
+  end;
+
+  for I := 1 to 6 do
+  begin
+    if (Modelos[I] = '') and (I < 6) then
+    begin
+      for J := I + 1 to 6 do
+      begin
+        if Modelos[J] <> '' then
+        begin
+          ShowMessage(
+            'Os modelos devem ser informados em sequencia, sem espacos vazios.'
+          );
+          Exit;
+        end;
+      end;
+    end;
+  end;
+
+  Result := True;
 end;
 
 function TfrmMain.SanitizarNomeArquivo(const Nome: String): String;
@@ -275,14 +408,18 @@ var
   C: Char;
 begin
   Result := '';
+
   for I := 1 to Length(Nome) do
   begin
     C := Nome[I];
+
     if C in ['A'..'Z', 'a'..'z', '0'..'9', ' ', '-', '_'] then
       Result := Result + C;
   end;
+
   Result := Trim(Result);
   Result := StringReplace(Result, ' ', '_', [rfReplaceAll]);
+
   if Result = '' then
     Result := 'Estabelecimento';
 end;
@@ -301,36 +438,73 @@ begin
     Exit;
   end;
 
-  if not ValidarInteiro(EdtTotalComputadores.Text, 'Total de computadores', TotalComputadores) then Exit;
+  if not ValidarInteiro(EdtTotalComputadores.Text,
+    'Total de computadores', TotalComputadores) then Exit;
+
   if not ValidarInteiro(EdtCaixas.Text, 'Caixas', Caixas) then Exit;
-  if not ValidarInteiro(EdtRetaguardas.Text, 'Retaguarda', Retaguardas) then Exit;
+
+  if not ValidarInteiro(EdtRetaguardas.Text,
+    'Retaguarda', Retaguardas) then Exit;
 
   if Caixas > TotalComputadores then
   begin
-    ShowMessage('A quantidade de Caixas nao pode ser maior que o total de computadores.');
+    ShowMessage(
+      'A quantidade de Caixas nao pode ser maior que o total de computadores.'
+    );
     Exit;
   end;
 
   if Retaguardas > TotalComputadores then
   begin
-    ShowMessage('A quantidade de Retaguarda nao pode ser maior que o total de computadores.');
+    ShowMessage(
+      'A quantidade de Retaguarda nao pode ser maior que o total de computadores.'
+    );
     Exit;
   end;
 
   PinPads := 0;
+
   if ChkTEF.Checked then
-    if not ValidarInteiro(EdtPinPads.Text, 'Qtd. PinPads', PinPads) then Exit;
+  begin
+    if not ValidarInteiro(EdtPinPads.Text,
+      'Qtd. PinPads', PinPads) then Exit;
+
+    if PinPads < 1 then
+    begin
+      ShowMessage(
+        'Como o estabelecimento utiliza TEF, a quantidade de PinPads deve ser 1 ou mais.'
+      );
+      Exit;
+    end;
+  end;
 
   QtdImpressoras := 0;
+
   if ChkImpressoras.Checked then
-    if not ValidarInteiro(EdtQtdImpressoras.Text, 'Quantidade de impressoras', QtdImpressoras) then Exit;
+  begin
+    if not ValidarInteiro(EdtQtdImpressoras.Text,
+      'Quantidade de impressoras', QtdImpressoras) then Exit;
+
+    if QtdImpressoras < 1 then
+    begin
+      ShowMessage(
+        'Como o estabelecimento utiliza impressoras termicas, a quantidade deve ser 1 ou mais.'
+      );
+      Exit;
+    end;
+
+    if not ValidarModelosImpressoras then
+      Exit;
+  end;
 
   BtnGerar.Enabled := False;
+  BtnEncerrar.Enabled := False;
   LblStatus.Caption := 'Coletando informacoes do computador...';
   Application.ProcessMessages;
 
   Pacote := TStringList.Create;
   HW := HardwareInfo.ColetarHardware;
+
   try
     Pacote.Add('Estabelecimento=' + Trim(EdtEstabelecimento.Text));
     Pacote.Add('TotalComputadores=' + IntToStr(TotalComputadores));
@@ -341,8 +515,14 @@ begin
     Pacote.Add('QtdPinPads=' + IntToStr(PinPads));
     Pacote.Add('UtilizaImpressoras=' + BoolToStr(ChkImpressoras.Checked, 'S', 'N'));
     Pacote.Add('QtdImpressoras=' + IntToStr(QtdImpressoras));
-    Pacote.Add('ModelosImpressoras=' + Trim(EdtModelosImpressoras.Text));
-    Pacote.Add('Observacoes=' + StringReplace(MemoObservacoes.Text, #13#10, ' | ', [rfReplaceAll]));
+
+    if ChkImpressoras.Checked then
+      Pacote.Add('ModelosImpressoras=' + ObterModelosImpressoras)
+    else
+      Pacote.Add('ModelosImpressoras=');
+
+    Pacote.Add('Observacoes=' +
+      StringReplace(MemoObservacoes.Text, #13#10, ' | ', [rfReplaceAll]));
     Pacote.Add('DataGeracao=' + DateTimeToStr(Now));
 
     for I := 0 to HW.Count - 1 do
@@ -352,16 +532,20 @@ begin
     Application.ProcessMessages;
 
     PastaDesktop := GetEnvironmentVariable('USERPROFILE') + '\Desktop\';
+
     if not DirectoryExists(PastaDesktop) then
       PastaDesktop := GetEnvironmentVariable('USERPROFILE') + '\';
 
     NomeArquivo := SanitizarNomeArquivo(EdtEstabelecimento.Text) + '_' +
       FormatDateTime('yyyymmdd_hhnnss', Now) + '.LBX';
+
     CaminhoCompleto := PastaDesktop + NomeArquivo;
 
     SalvarArquivoLBX(CaminhoCompleto, Pacote.Text);
 
-    LblStatus.Caption := 'Despacho gerado com sucesso.';
+    LblStatus.Caption := 'Relatorio gerado com sucesso.';
+    BtnEncerrar.Enabled := True;
+
     ShowMessage(
       'Arquivo gerado com sucesso:' + LineEnding + LineEnding +
       CaminhoCompleto + LineEnding + LineEnding +
@@ -372,6 +556,11 @@ begin
     HW.Free;
     BtnGerar.Enabled := True;
   end;
+end;
+
+procedure TfrmMain.BtnEncerrarClick(Sender: TObject);
+begin
+  Close;
 end;
 
 end.
