@@ -81,7 +81,7 @@ end;
 procedure TfrmAnalyser.ProcessarConteudo(const Conteudo: String);
 var
   Linhas: TStringList;
-  I, PosIgual, Linha: Integer;
+  I, PosIgual: Integer;
   Chave, Valor: String;
   Processador, MemoriaRAM, SistemaOperacional, Papel, Estabelecimento: String;
   RAMGB: Integer;
@@ -102,7 +102,6 @@ begin
 
     for I := 0 to Linhas.Count - 1 do
     begin
-      Linha := I;
       PosIgual := Pos('=', Linhas[I]);
       if PosIgual = 0 then Continue;
 
