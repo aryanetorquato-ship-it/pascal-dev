@@ -147,13 +147,13 @@ begin
   RgPapelComputador.Left := 16;
   RgPapelComputador.Top := Y;
   RgPapelComputador.Width := LARGURA_FORM - 32;
-  RgPapelComputador.Height := 100;
+  RgPapelComputador.Height := 85;
   RgPapelComputador.Caption := 'Papel deste computador:';
   RgPapelComputador.Items.Add('Servidor');
   RgPapelComputador.Items.Add('Retaguarda / ADM');
   RgPapelComputador.Items.Add('Caixa / PDV');
   RgPapelComputador.ItemIndex := 2;
-  Inc(Y, 108);
+  Inc(Y, 93);
 
   ChkTEF := TCheckBox.Create(Self);
   ChkTEF.Parent := Self;
@@ -175,7 +175,7 @@ begin
   EdtPinPads.Width := 70;
   EdtPinPads.Text := '0';
   EdtPinPads.Enabled := False;
-  Inc(Y, 34);
+  Inc(Y, 28);
 
   ChkImpressoras := TCheckBox.Create(Self);
   ChkImpressoras.Parent := Self;
@@ -183,7 +183,7 @@ begin
   ChkImpressoras.Top := Y;
   ChkImpressoras.Caption := 'Utiliza impressoras termicas';
   ChkImpressoras.OnChange := @ChkImpressorasChange;
-  Inc(Y, 26);
+  Inc(Y, 22);
 
   Lbl := TLabel.Create(Self);
   Lbl.Parent := Self;
@@ -211,21 +211,21 @@ begin
   MemoModelosImpressoras.Left := 16;
   MemoModelosImpressoras.Top := Y;
   MemoModelosImpressoras.Width := LARGURA_FORM - 32;
-  MemoModelosImpressoras.Height := 58;
+  MemoModelosImpressoras.Height := 45;
   MemoModelosImpressoras.ScrollBars := ssVertical;
   MemoModelosImpressoras.Enabled := False;
   MemoModelosImpressoras.MaxLength := 400;
   MemoModelosImpressoras.Hint :=
     'Informe os modelos e as respectivas quantidades. Ex.: 9 Elgin i9; 1 Daruma DR700; 7 Elgin i7.';
   MemoModelosImpressoras.ShowHint := True;
-  Inc(Y, 66);
+  Inc(Y, 53);
 
   Lbl := TLabel.Create(Self);
   Lbl.Parent := Self;
   Lbl.Left := 16;
   Lbl.Top := Y;
   Lbl.Caption := 'Observacoes (opcional):';
-  Inc(Y, 18);
+  Inc(Y, 14);
 
   MemoObservacoes := TMemo.Create(Self);
   MemoObservacoes.Parent := Self;
@@ -249,7 +249,7 @@ begin
   LblStatus.AutoSize := False;
   LblStatus.Caption := '';
   LblStatus.Font.Color := clNavy;
-  Inc(Y, 34);
+  Inc(Y, 26);
 
   BtnGerar := TButton.Create(Self);
   BtnGerar.Parent := Self;
@@ -259,7 +259,7 @@ begin
   BtnGerar.Height := 36;
   BtnGerar.Caption := 'Gerar Relatorio';
   BtnGerar.OnClick := @BtnGerarClick;
-  Inc(Y, 42);
+  Inc(Y, 36);
 
   BtnEncerrar := TButton.Create(Self);
   BtnEncerrar.Parent := Self;
