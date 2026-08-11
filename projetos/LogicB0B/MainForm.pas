@@ -73,6 +73,7 @@ var
   Lbl: TLabel;
 begin
   Caption := 'LogicB0B Questionario - build ' + BUILD_ID;
+  DoubleBuffered := True;
   Width := LARGURA_FORM;
   Height := ALTURA_FORM;
   Position := poScreenCenter;
@@ -305,6 +306,8 @@ begin
   LblContadorObs.Caption :=
     IntToStr(1500 - Length(MemoObservacoes.Text)) +
     ' caracteres restantes';
+  LblContadorObs.Invalidate;
+  LblContadorObs.Update;
 end;
 
 procedure TfrmMain.MemoObservacoesKeyUp(Sender: TObject; var Key: Word;
