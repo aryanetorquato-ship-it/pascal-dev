@@ -92,8 +92,8 @@ begin
   EdtEstabelecimento.Left := 16;
   EdtEstabelecimento.Top := Y;
   EdtEstabelecimento.Width := LARGURA_FORM - 32;
-  EdtEstabelecimento.MaxLength := 120;
-  Inc(Y, 34);
+  EdtEstabelecimento.MaxLength := 60;
+  Inc(Y, 40);
 
   Lbl := TLabel.Create(Self);
   Lbl.Parent := Self;
@@ -233,9 +233,7 @@ begin
   LblContadorObs.Parent := Self;
   LblContadorObs.Left := 16;
   LblContadorObs.Top := Y;
-  LblContadorObs.Width := LARGURA_FORM - 32;
-  LblContadorObs.Height := 18;
-  LblContadorObs.AutoSize := False;
+  LblContadorObs.AutoSize := True;
   LblContadorObs.Caption := '1500 caracteres restantes';
   LblContadorObs.Font.Color := clGray;
   Inc(Y, 24);
