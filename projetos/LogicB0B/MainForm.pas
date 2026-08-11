@@ -53,7 +53,7 @@ implementation
 
 const
   LARGURA_FORM = 480;
-  ALTURA_FORM = 560;
+  ALTURA_FORM = 640;
 
 constructor TfrmMain.CreateNew(AOwner: TComponent; Num: Integer);
 begin
