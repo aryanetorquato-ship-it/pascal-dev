@@ -17,6 +17,31 @@ jobs:
           lazarus-version: "3.0"
           with-cache: true
 
+      - name: Gravar versao do build
+        shell: powershell
+        working-directory: projetos/LogicB0B
+        run: |
+          $sha = "${{ github.sha }}".Substring(0,7)
+          $hora = Get-Date -Format "yyyyMMdd_HHmm"
+          $buildId = "$sha-$hora"
+          Write-Host "Build ID: $buildId"
+
+          $conteudo = @"
+unit BuildInfo;
+
+{`$mode objfpc}{`$H+}
+
+interface
+
+const
+  BUILD_ID = '$buildId';
+
+implementation
+
+end.
+"@
+          Set-Content -Path "BuildInfo.pas" -Value $conteudo -Encoding UTF8
+
       - name: Compilar Questionario
         shell: powershell
         working-directory: projetos/LogicB0B
@@ -27,33 +52,17 @@ jobs:
             exit 1
           }
           $fpcExe = $fpc.Source
-          Write-Host "fpc encontrado: $fpcExe"
-
-          # Descobrir a pasta base do Lazarus a partir do caminho do fpc.exe
-          # Estrutura: <lazarusBase>\fpc\3.2.2\bin\x86_64-win64\fpc.exe
           $lazarusBase = (Get-Item $fpcExe).Directory.Parent.Parent.Parent.Parent.FullName
-          Write-Host "Lazarus base: $lazarusBase"
-
           $lcl = "$lazarusBase\lcl\units\x86_64-win64"
           $win = "$lazarusBase\lcl\units\x86_64-win64\win32"
           $laz = "$lazarusBase\components\lazutils\lib\x86_64-win64"
 
-          Write-Host "LCL path: $lcl"
-          Write-Host "WIN path: $win"
-          Write-Host "LAZ path: $laz"
-
-          Write-Host "Compilando Questionario.lpr para Windows x64..."
-          & $fpcExe -Twin64 -O2 -WG `
-            "-Fu$lcl" `
-            "-Fu$win" `
-            "-Fu$laz" `
-            Questionario.lpr
+          & $fpcExe -Twin64 -O2 "-Fu$lcl" "-Fu$win" "-Fu$laz" Questionario.lpr
 
           if ($LASTEXITCODE -ne 0) {
             Write-Host "ERRO: compilacao falhou."
             exit 1
           }
-          Write-Host "Compilacao concluida."
 
       - name: Verificar EXE
         shell: powershell
@@ -61,12 +70,9 @@ jobs:
         run: |
           if (-not (Test-Path "Questionario.exe")) {
             Write-Host "ERRO: Questionario.exe nao foi gerado."
-            Get-ChildItem
             exit 1
           }
           Write-Host "Questionario.exe gerado com sucesso."
-          $tamanho = (Get-Item "Questionario.exe").Length
-          Write-Host "Tamanho: $tamanho bytes"
 
       - name: Publicar EXE
         uses: actions/upload-artifact@v4

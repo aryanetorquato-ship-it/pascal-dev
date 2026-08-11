@@ -7,7 +7,7 @@ uses
   cthreads,
   {$ENDIF}
   Interfaces, Forms,
-  MainForm, HardwareInfo, LBXCrypto;
+  MainForm, HardwareInfo, LBXCrypto, BuildInfo;
 
 begin
   RequireDerivedFormResource := False;

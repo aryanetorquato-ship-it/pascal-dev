@@ -7,7 +7,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, StdCtrls, ExtCtrls, Dialogs,
-  Graphics, HardwareInfo, LBXCrypto;
+  Graphics, HardwareInfo, LBXCrypto, BuildInfo;
 
 type
   TfrmMain = class(TForm)
@@ -72,7 +72,7 @@ var
   Y: Integer;
   Lbl: TLabel;
 begin
-  Caption := 'LogicB0B Questionario';
+  Caption := 'LogicB0B Questionario - build ' + BUILD_ID;
   Width := LARGURA_FORM;
   Height := ALTURA_FORM;
   Position := poScreenCenter;
