@@ -1,6 +1,7 @@
 program Questionario;
 
 {$mode objfpc}{$H+}
+{$apptype GUI}
 
 uses
   {$IFDEF UNIX}
