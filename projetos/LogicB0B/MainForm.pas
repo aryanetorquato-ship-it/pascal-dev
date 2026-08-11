@@ -2,7 +2,7 @@ unit MainForm;
 
 {$mode objfpc}{$H+}
 
-interface
+\\interface
 
 uses
   Classes, SysUtils, Forms, Controls, StdCtrls, ExtCtrls, Dialogs,
@@ -20,12 +20,7 @@ type
     EdtPinPads: TEdit;
     ChkImpressoras: TCheckBox;
     EdtQtdImpressoras: TEdit;
-    EdtModeloImpressora1: TEdit;
-    EdtModeloImpressora2: TEdit;
-    EdtModeloImpressora3: TEdit;
-    EdtModeloImpressora4: TEdit;
-    EdtModeloImpressora5: TEdit;
-    EdtModeloImpressora6: TEdit;
+    MemoModelosImpressoras: TMemo;
     MemoObservacoes: TMemo;
     LblContadorObs: TLabel;
     LblStatus: TLabel;
@@ -72,9 +67,7 @@ end;
 procedure TfrmMain.MontarInterface;
 var
   Y: Integer;
-  I: Integer;
   Lbl: TLabel;
-  Modelo: TEdit;
 begin
   Caption := 'LogicB0B Questionario';
   Width := LARGURA_FORM;
@@ -104,7 +97,7 @@ begin
   Lbl.Parent := Self;
   Lbl.Left := 16;
   Lbl.Top := Y;
-  Lbl.Caption := 'Total de computadores:';
+  Lbl.Caption := 'Total de computadores (equipamentos fisicos):';
   Inc(Y, 18);
 
   EdtTotalComputadores := TEdit.Create(Self);
@@ -118,7 +111,7 @@ begin
   Lbl.Parent := Self;
   Lbl.Left := 140;
   Lbl.Top := Y + 3;
-  Lbl.Caption := 'Caixas:';
+  Lbl.Caption := 'Caixas / PDVs:';
 
   EdtCaixas := TEdit.Create(Self);
   EdtCaixas.Parent := Self;
@@ -197,37 +190,22 @@ begin
   Lbl.Parent := Self;
   Lbl.Left := 190;
   Lbl.Top := Y + 3;
-  Lbl.Caption := 'Modelos (ate 6 diferentes):';
+  Lbl.Caption := 'Detalhamento das impressoras:';
   Inc(Y, 24);
 
-  for I := 1 to 6 do
-  begin
-    Lbl := TLabel.Create(Self);
-    Lbl.Parent := Self;
-    Lbl.Left := 16;
-    Lbl.Top := Y + 3;
-    Lbl.Caption := 'Modelo ' + IntToStr(I) + ':';
-
-    Modelo := TEdit.Create(Self);
-    Modelo.Parent := Self;
-    Modelo.Left := 82;
-    Modelo.Top := Y;
-    Modelo.Width := LARGURA_FORM - 98;
-    Modelo.Enabled := False;
-
-    case I of
-      1: EdtModeloImpressora1 := Modelo;
-      2: EdtModeloImpressora2 := Modelo;
-      3: EdtModeloImpressora3 := Modelo;
-      4: EdtModeloImpressora4 := Modelo;
-      5: EdtModeloImpressora5 := Modelo;
-      6: EdtModeloImpressora6 := Modelo;
-    end;
-
-    Inc(Y, 28);
-  end;
-
-  Inc(Y, 8);
+  MemoModelosImpressoras := TMemo.Create(Self);
+  MemoModelosImpressoras.Parent := Self;
+  MemoModelosImpressoras.Left := 16;
+  MemoModelosImpressoras.Top := Y;
+  MemoModelosImpressoras.Width := LARGURA_FORM - 32;
+  MemoModelosImpressoras.Height := 58;
+  MemoModelosImpressoras.ScrollBars := ssVertical;
+  MemoModelosImpressoras.Enabled := False;
+  MemoModelosImpressoras.MaxLength := 400;
+  MemoModelosImpressoras.Hint :=
+    'Informe os modelos e as respectivas quantidades. Ex.: 9 Elgin i9; 1 Daruma DR700; 7 Elgin i7.';
+  MemoModelosImpressoras.ShowHint := True;
+  Inc(Y, 66);
 
   Lbl := TLabel.Create(Self);
   Lbl.Parent := Self;
@@ -251,7 +229,7 @@ begin
   LblContadorObs.Left := 16;
   LblContadorObs.Top := Y;
   LblContadorObs.AutoSize := True;
-  LblContadorObs.Caption := '0 / 1500 caracteres';
+  LblContadorObs.Caption := '1500 caracteres restantes';
   LblContadorObs.Font.Color := clGray;
   Inc(Y, 24);
 
@@ -297,23 +275,12 @@ end;
 procedure TfrmMain.ChkImpressorasChange(Sender: TObject);
 begin
   EdtQtdImpressoras.Enabled := ChkImpressoras.Checked;
-
-  EdtModeloImpressora1.Enabled := ChkImpressoras.Checked;
-  EdtModeloImpressora2.Enabled := ChkImpressoras.Checked;
-  EdtModeloImpressora3.Enabled := ChkImpressoras.Checked;
-  EdtModeloImpressora4.Enabled := ChkImpressoras.Checked;
-  EdtModeloImpressora5.Enabled := ChkImpressoras.Checked;
-  EdtModeloImpressora6.Enabled := ChkImpressoras.Checked;
+  MemoModelosImpressoras.Enabled := ChkImpressoras.Checked;
 
   if not ChkImpressoras.Checked then
   begin
     EdtQtdImpressoras.Text := '0';
-    EdtModeloImpressora1.Text := '';
-    EdtModeloImpressora2.Text := '';
-    EdtModeloImpressora3.Text := '';
-    EdtModeloImpressora4.Text := '';
-    EdtModeloImpressora5.Text := '';
-    EdtModeloImpressora6.Text := '';
+    MemoModelosImpressoras.Clear;
   end;
 end;
 
@@ -323,7 +290,8 @@ begin
     MemoObservacoes.Text := Copy(MemoObservacoes.Text, 1, 1500);
 
   LblContadorObs.Caption :=
-    IntToStr(Length(MemoObservacoes.Text)) + ' / 1500 caracteres';
+    IntToStr(1500 - Length(MemoObservacoes.Text)) +
+    ' caracteres restantes';
 end;
 
 function TfrmMain.ValidarInteiro(const Texto, NomeCampo: String;
@@ -337,69 +305,22 @@ begin
 end;
 
 function TfrmMain.ObterModelosImpressoras: String;
-var
-  Modelos: array[1..6] of String;
-  I: Integer;
 begin
-  Modelos[1] := Trim(EdtModeloImpressora1.Text);
-  Modelos[2] := Trim(EdtModeloImpressora2.Text);
-  Modelos[3] := Trim(EdtModeloImpressora3.Text);
-  Modelos[4] := Trim(EdtModeloImpressora4.Text);
-  Modelos[5] := Trim(EdtModeloImpressora5.Text);
-  Modelos[6] := Trim(EdtModeloImpressora6.Text);
-
-  Result := '';
-
-  for I := 1 to 6 do
-  begin
-    if Modelos[I] <> '' then
-    begin
-      if Result <> '' then
-        Result := Result + ' | ';
-
-      Result := Result + Modelos[I];
-    end;
-  end;
+  Result := Trim(MemoModelosImpressoras.Text);
+  Result := StringReplace(Result, #13#10, ' | ', [rfReplaceAll]);
+  Result := StringReplace(Result, #10, ' | ', [rfReplaceAll]);
 end;
 
 function TfrmMain.ValidarModelosImpressoras: Boolean;
-var
-  Modelos: array[1..6] of String;
-  I, J: Integer;
 begin
-  Result := False;
+  Result := Trim(MemoModelosImpressoras.Text) <> '';
 
-  Modelos[1] := Trim(EdtModeloImpressora1.Text);
-  Modelos[2] := Trim(EdtModeloImpressora2.Text);
-  Modelos[3] := Trim(EdtModeloImpressora3.Text);
-  Modelos[4] := Trim(EdtModeloImpressora4.Text);
-  Modelos[5] := Trim(EdtModeloImpressora5.Text);
-  Modelos[6] := Trim(EdtModeloImpressora6.Text);
-
-  if Modelos[1] = '' then
-  begin
-    ShowMessage('Informe pelo menos um modelo de impressora termica.');
-    Exit;
-  end;
-
-  for I := 1 to 6 do
-  begin
-    if (Modelos[I] = '') and (I < 6) then
-    begin
-      for J := I + 1 to 6 do
-      begin
-        if Modelos[J] <> '' then
-        begin
-          ShowMessage(
-            'Os modelos devem ser informados em sequencia, sem espacos vazios.'
-          );
-          Exit;
-        end;
-      end;
-    end;
-  end;
-
-  Result := True;
+  if not Result then
+    ShowMessage(
+      'Informe os modelos e as quantidades das impressoras termicas.' +
+      LineEnding + LineEnding +
+      'Exemplo: 9 Elgin i9; 1 Daruma DR700; 7 Elgin i7.'
+    );
 end;
 
 function TfrmMain.SanitizarNomeArquivo(const Nome: String): String;
