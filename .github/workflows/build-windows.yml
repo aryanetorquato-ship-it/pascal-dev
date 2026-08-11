@@ -1,15 +1,12 @@
 name: Build LogicB0B Questionario
-
 on:
   push:
     branches:
       - main
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: windows-2022
-
     steps:
       - name: Baixar codigo
         uses: actions/checkout@v4
@@ -20,51 +17,34 @@ jobs:
           lazarus-version: "3.0"
           with-cache: false
 
-      - name: Localizar Lazarus
-        shell: powershell
-        run: |
-          $lazbuild = Get-Command lazbuild.exe -ErrorAction SilentlyContinue
-
-          if ($lazbuild) {
-            Write-Host "lazbuild encontrado no PATH:"
-            Write-Host $lazbuild.Source
-            "LAZBUILD=$($lazbuild.Source)" >> $env:GITHUB_ENV
-            exit 0
-          }
-
-          $candidatos = @(
-            "C:\lazarus\lazbuild.exe",
-            "C:\lazarus\lazbuild\lazbuild.exe",
-            "C:\Program Files\Lazarus\lazbuild.exe",
-            "C:\Program Files\Lazarus\lazbuild\lazbuild.exe",
-            "C:\Program Files (x86)\Lazarus\lazbuild.exe",
-            "C:\Program Files (x86)\Lazarus\lazbuild\lazbuild.exe"
-          )
-
-          foreach ($caminho in $candidatos) {
-            if (Test-Path $caminho) {
-              Write-Host "lazbuild encontrado:"
-              Write-Host $caminho
-              "LAZBUILD=$caminho" >> $env:GITHUB_ENV
-              exit 0
-            }
-          }
-
-          Write-Host "ERRO: lazbuild.exe nao foi encontrado."
-          Write-Host "PATH atual:"
-          Write-Host $env:PATH
-
-          exit 1
-
       - name: Compilar Questionario
         shell: powershell
         working-directory: projetos/LogicB0B
         run: |
-          Write-Host "Compilando Questionario para Windows x64..."
-          fpc.exe -Twin64 -O2 Questionario.pas
+          $fpc = Get-Command fpc.exe -ErrorAction SilentlyContinue
+          if (-not $fpc) {
+            Write-Host "ERRO: fpc.exe nao encontrado no PATH."
+            exit 1
+          }
+          Write-Host "fpc encontrado: $($fpc.Source)"
 
-          Write-Host "Compilando teste isolado do PowerShell..."
-          fpc.exe -Twin64 -O2 TestePowerShell.pas
+          $lazarusBase = "C:\lazarus"
+          $lcl  = "$lazarusBase\lcl\units\x86_64-win64"
+          $win  = "$lazarusBase\lcl\units\x86_64-win64\win32"
+          $laz  = "$lazarusBase\components\lazutils\lib\x86_64-win64"
+
+          Write-Host "Compilando Questionario.lpr para Windows x64..."
+          fpc.exe -Twin64 -O2 `
+            "-Fu$lcl" `
+            "-Fu$win" `
+            "-Fu$laz" `
+            Questionario.lpr
+
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "ERRO: compilacao falhou."
+            exit 1
+          }
+          Write-Host "Compilacao concluida."
 
       - name: Verificar EXE
         shell: powershell
@@ -75,27 +55,12 @@ jobs:
             Get-ChildItem
             exit 1
           }
-
-          if (-not (Test-Path "TestePowerShell.exe")) {
-            Write-Host "ERRO: TestePowerShell.exe nao foi gerado."
-            Get-ChildItem
-            exit 1
-          }
-
           Write-Host "Questionario.exe gerado com sucesso."
-          Write-Host "TestePowerShell.exe gerado com sucesso."
-
-      - name: Executar teste PowerShell
-        shell: powershell
-        working-directory: projetos/LogicB0B
-        run: |
-          Write-Host "Executando teste isolado..."
-          .\TestePowerShell.exe
+          $tamanho = (Get-Item "Questionario.exe").Length
+          Write-Host "Tamanho: $tamanho bytes"
 
       - name: Publicar EXE
         uses: actions/upload-artifact@v4
         with:
           name: LogicB0B-Questionario
-          path: |
-            projetos/LogicB0B/Questionario.exe
-            projetos/LogicB0B/TestePowerShell.exe
+          path: projetos/LogicB0B/Questionario.exe

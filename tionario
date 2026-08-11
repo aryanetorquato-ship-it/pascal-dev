@@ -1,0 +1,150 @@
+[1mdiff --git a/projetos/LogicB0B/Questionario.pas b/projetos/LogicB0B/Questionario.pas[m
+[1mindex 764107e..52b92eb 100644[m
+[1m--- a/projetos/LogicB0B/Questionario.pas[m
+[1m+++ b/projetos/LogicB0B/Questionario.pas[m
+[36m@@ -68,19 +68,19 @@[m [mend;[m
+ function ExecutarPowerShell(const Comando: String): String;[m
+ var[m
+   Processo: TProcess;[m
+[31m-  Saida: TStringList;[m
+[32m+[m[32m  Saida: String;[m
+[32m+[m[32m  Erro: String;[m
+[32m+[m[32m  Status: Integer;[m
+[32m+[m[32m  ResultadoExecucao: Integer;[m
+   ExecutavelPowerShell: String;[m
+ begin[m
+   Result := '';[m
+ [m
+[31m-  {$IFDEF WINDOWS}[m
+[32m+[m[32m{$IFDEF WINDOWS}[m
+ [m
+   Processo := TProcess.Create(nil);[m
+[31m-  Saida := TStringList.Create;[m
+ [m
+   try[m
+[31m-    { Localizacao padrao do Windows PowerShell.[m
+[31m-      Usamos o WINDIR para evitar depender de PATH. }[m
+     ExecutavelPowerShell :=[m
+       GetEnvironmentVariable('WINDIR') +[m
+       '\System32\WindowsPowerShell\v1.0\powershell.exe';[m
+[36m@@ -88,9 +88,11 @@[m [mbegin[m
+     if not FileExists(ExecutavelPowerShell) then[m
+       ExecutavelPowerShell := 'powershell.exe';[m
+ [m
+[31m-    GravarLogDiagnostico('[LOG] Executavel encontrado: ' + ExecutavelPowerShell);[m
+[32m+[m[32m    GravarLogDiagnostico([m
+[32m+[m[32m      '[LOG] Executavel encontrado: ' + ExecutavelPowerShell[m
+[32m+[m[32m    );[m
+ [m
+[31m-Processo.Executable := ExecutavelPowerShell;[m
+[32m+[m[32m    Processo.Executable := ExecutavelPowerShell;[m
+ [m
+     Processo.Parameters.Add('-NoProfile');[m
+     Processo.Parameters.Add('-NonInteractive');[m
+[36m@@ -99,35 +101,49 @@[m [mProcesso.Executable := ExecutavelPowerShell;[m
+     Processo.Parameters.Add('-Command');[m
+     Processo.Parameters.Add(Comando);[m
+ [m
+[31m-    Processo.Options := [[m
+[31m-      poUsePipes,[m
+[31m-      poWaitOnExit,[m
+[31m-      poStderrToOutPut[m
+[31m-    ];[m
+[32m+[m[32m    GravarLogDiagnostico([m
+[32m+[m[32m      '[LOG] Antes de RunCommandLoop'[m
+[32m+[m[32m    );[m
+ [m
+[31m-    try[m
+[31m-      GravarLogDiagnostico('[LOG] Antes de Processo.Execute');[m
+[32m+[m[32m    ResultadoExecucao :=[m
+[32m+[m[32m      Processo.RunCommandLoop([m
+[32m+[m[32m        Saida,[m
+[32m+[m[32m        Erro,[m
+[32m+[m[32m        Status[m
+[32m+[m[32m      );[m
+ [m
+[31m-Processo.Execute;[m
+[32m+[m[32m    GravarLogDiagnostico([m
+[32m+[m[32m      '[LOG] Depois de RunCommandLoop'[m
+[32m+[m[32m    );[m
+ [m
+[31m-GravarLogDiagnostico('[LOG] Depois de Processo.Execute');[m
+[31m-    except[m
+[31m-      on E: Exception do[m
+[31m-      begin[m
+[31m-        Result := 'Nao foi possivel coletar: ' + E.Message;[m
+[31m-        Exit;[m
+[31m-      end;[m
+[31m-    end;[m
+[32m+[m[32m    GravarLogDiagnostico([m
+[32m+[m[32m      '[LOG] ResultadoExecucao: ' +[m
+[32m+[m[32m      IntToStr(ResultadoExecucao)[m
+[32m+[m[32m    );[m
+ [m
+[31m-    GravarLogDiagnostico('[LOG] Antes de LoadFromStream');[m
+[32m+[m[32m    GravarLogDiagnostico([m
+[32m+[m[32m      '[LOG] ExitStatus: ' +[m
+[32m+[m[32m      IntToStr(Status)[m
+[32m+[m[32m    );[m
+[32m+[m
+[32m+[m[32m    if Erro <> '' then[m
+[32m+[m[32m      GravarLogDiagnostico([m
+[32m+[m[32m        '[LOG] STDERR: ' + Trim(Erro)[m
+[32m+[m[32m      );[m
+ [m
+[31m-Saida.LoadFromStream(Processo.Output);[m
+[32m+[m[32m    if ResultadoExecucao <> 0 then[m
+[32m+[m[32m    begin[m
+[32m+[m[32m      Result := 'Nao foi possivel executar o PowerShell.';[m
+ [m
+[31m-GravarLogDiagnostico('[LOG] Depois de LoadFromStream');[m
+[32m+[m[32m      if Erro <> '' then[m
+[32m+[m[32m        Result := Result + ' ' + Trim(Erro);[m
+ [m
+[31m-    Result := Trim(Saida.Text);[m
+[32m+[m[32m      Exit;[m
+[32m+[m[32m    end;[m
+ [m
+[31m-    if Processo.ExitStatus <> 0 then[m
+[32m+[m[32m    Result := Trim(Saida);[m
+[32m+[m
+[32m+[m[32m    if Status <> 0 then[m
+     begin[m
+       if Result = '' then[m
+         Result := 'Nao foi possivel coletar os dados.';[m
+[36m@@ -136,20 +152,25 @@[m [mGravarLogDiagnostico('[LOG] Depois de LoadFromStream');[m
+     if Result = '' then[m
+       Result := 'Nao informado';[m
+ [m
+[31m-  finally[m
+[31m-    Saida.Free;[m
+[31m-    Processo.Free;[m
+[31m-  end;[m
+[32m+[m[32m    GravarLogDiagnostico([m
+[32m+[m[32m      '[LOG] Resultado final: ' + Result[m
+[32m+[m[32m    );[m
+ [m
+[31m-  {$ELSE}[m
+[32m+[m[32m  except[m
+[32m+[m[32m    on E: Exception do[m
+[32m+[m[32m    begin[m
+[32m+[m[32m      GravarLogDiagnostico([m
+[32m+[m[32m        '[ERRO] ExecutarPowerShell: ' + E.Message[m
+[32m+[m[32m      );[m
+ [m
+[31m-  { O Questionario sera distribuido somente para Windows.[m
+[31m-    O Codespace Linux serve apenas para desenvolvimento. }[m
+[31m-  Result := 'Coleta disponivel somente no Windows';[m
+[32m+[m[32m      Result := 'Nao foi possivel coletar: ' + E.Message;[m
+[32m+[m[32m    end;[m
+[32m+[m[32m  end;[m
+ [m
+[31m-  {$ENDIF}[m
+[31m-end;[m
+[32m+[m[32m  Processo.Free;[m
+ [m
+[32m+[m[32m{$ENDIF}[m
+[32m+[m[32mend;[m
+ [m
+ function DetectarFabricantePC: String;[m
+ begin[m
