@@ -34,8 +34,8 @@ type
 
     function ValidarInteiro(const Texto, NomeCampo: String; out Valor: Integer): Boolean;
     function SanitizarNomeArquivo(const Nome: String): String;
-    procedure MontarInterface;
   public
+    procedure MontarInterface;
     constructor CreateNew(AOwner: TComponent; Num: Integer = 0); override;
   end;
 

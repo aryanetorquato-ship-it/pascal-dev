@@ -3,18 +3,21 @@ program Questionario;
 {$mode objfpc}{$H+}
 
 uses
-  Interfaces,
-  Forms;
-
-type
-  TFormPrincipal = class(TForm)
-  end;
-
-var
-  FormPrincipal: TFormPrincipal;
+  {$IFDEF UNIX}
+  cthreads,
+  {$ENDIF}
+  Interfaces, Forms,
+  MainForm, HardwareInfo, LBXCrypto;
 
 begin
+  RequireDerivedFormResource := False;
+  Application.Title := 'LogicB0B Questionario';
+  Application.Scaled := True;
   Application.Initialize;
-  Application.CreateForm(TFormPrincipal, FormPrincipal);
+
+  frmMain := TfrmMain.CreateNew(nil);
+  frmMain.MontarInterface;
+  frmMain.Show;
+
   Application.Run;
 end.

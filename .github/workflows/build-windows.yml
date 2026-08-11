@@ -15,7 +15,7 @@ jobs:
         uses: gcarreno/setup-lazarus@v3.4.1
         with:
           lazarus-version: "3.0"
-          with-cache: false
+          with-cache: true
 
       - name: Compilar Questionario
         shell: powershell
