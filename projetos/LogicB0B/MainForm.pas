@@ -242,7 +242,7 @@ begin
   LblContadorObs.Width := LARGURA_FORM - 32;
   LblContadorObs.Height := 20;
   LblContadorObs.AutoSize := False;
-  LblContadorObs.Caption := '1500 caracteres restantes';
+  LblContadorObs.Caption := 'Max 1500 caracteres';
   LblContadorObs.Font.Color := clGray;
   Inc(Y, 40);
 
@@ -302,12 +302,6 @@ procedure TfrmMain.MemoObservacoesChange(Sender: TObject);
 begin
   if Length(MemoObservacoes.Text) > 1500 then
     MemoObservacoes.Text := Copy(MemoObservacoes.Text, 1, 1500);
-
-  LblContadorObs.Caption :=
-    IntToStr(1500 - Length(MemoObservacoes.Text)) +
-    ' caracteres restantes';
-  LblContadorObs.Invalidate;
-  LblContadorObs.Update;
 end;
 
 procedure TfrmMain.MemoObservacoesKeyUp(Sender: TObject; var Key: Word;
