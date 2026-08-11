@@ -16,20 +16,17 @@ type
     EdtCaixas: TEdit;
     EdtRetaguardas: TEdit;
     ChkServidor: TCheckBox;
-
     ChkTEF: TCheckBox;
     EdtPinPads: TEdit;
-
     ChkImpressoras: TCheckBox;
     EdtQtdImpressoras: TEdit;
     EdtModelosImpressoras: TEdit;
-
     MemoObservacoes: TMemo;
     LblContadorObs: TLabel;
-
     LblStatus: TLabel;
     BtnGerar: TButton;
 
+    procedure FormCreate(Sender: TObject);
     procedure ChkTEFChange(Sender: TObject);
     procedure ChkImpressorasChange(Sender: TObject);
     procedure MemoObservacoesChange(Sender: TObject);
@@ -53,6 +50,11 @@ const
 constructor TfrmMain.CreateNew(AOwner: TComponent; Num: Integer);
 begin
   inherited CreateNew(AOwner, Num);
+  OnCreate := @FormCreate;
+end;
+
+procedure TfrmMain.FormCreate(Sender: TObject);
+begin
   MontarInterface;
 end;
 
@@ -257,7 +259,6 @@ procedure TfrmMain.MemoObservacoesChange(Sender: TObject);
 begin
   if Length(MemoObservacoes.Text) > 1500 then
     MemoObservacoes.Text := Copy(MemoObservacoes.Text, 1, 1500);
-
   LblContadorObs.Caption := IntToStr(Length(MemoObservacoes.Text)) + ' / 1500 caracteres';
 end;
 
@@ -271,19 +272,17 @@ end;
 function TfrmMain.SanitizarNomeArquivo(const Nome: String): String;
 var
   I: Integer;
-  Caractere: Char;
+  C: Char;
 begin
   Result := '';
   for I := 1 to Length(Nome) do
   begin
-    Caractere := Nome[I];
-    if Caractere in ['A'..'Z', 'a'..'z', '0'..'9', ' ', '-', '_'] then
-      Result := Result + Caractere;
+    C := Nome[I];
+    if C in ['A'..'Z', 'a'..'z', '0'..'9', ' ', '-', '_'] then
+      Result := Result + C;
   end;
-
   Result := Trim(Result);
   Result := StringReplace(Result, ' ', '_', [rfReplaceAll]);
-
   if Result = '' then
     Result := 'Estabelecimento';
 end;
@@ -292,7 +291,7 @@ procedure TfrmMain.BtnGerarClick(Sender: TObject);
 var
   TotalComputadores, Caixas, Retaguardas, PinPads, QtdImpressoras: Integer;
   Pacote: TStringList;
-  HardwareColetado: TStringList;
+  HW: TStringList;
   I: Integer;
   NomeArquivo, CaminhoCompleto, PastaDesktop: String;
 begin
@@ -302,14 +301,9 @@ begin
     Exit;
   end;
 
-  if not ValidarInteiro(EdtTotalComputadores.Text, 'Total de computadores', TotalComputadores) then
-    Exit;
-
-  if not ValidarInteiro(EdtCaixas.Text, 'Caixas', Caixas) then
-    Exit;
-
-  if not ValidarInteiro(EdtRetaguardas.Text, 'Retaguarda', Retaguardas) then
-    Exit;
+  if not ValidarInteiro(EdtTotalComputadores.Text, 'Total de computadores', TotalComputadores) then Exit;
+  if not ValidarInteiro(EdtCaixas.Text, 'Caixas', Caixas) then Exit;
+  if not ValidarInteiro(EdtRetaguardas.Text, 'Retaguarda', Retaguardas) then Exit;
 
   if Caixas > TotalComputadores then
   begin
@@ -325,21 +319,18 @@ begin
 
   PinPads := 0;
   if ChkTEF.Checked then
-    if not ValidarInteiro(EdtPinPads.Text, 'Qtd. PinPads', PinPads) then
-      Exit;
+    if not ValidarInteiro(EdtPinPads.Text, 'Qtd. PinPads', PinPads) then Exit;
 
   QtdImpressoras := 0;
   if ChkImpressoras.Checked then
-    if not ValidarInteiro(EdtQtdImpressoras.Text, 'Quantidade de impressoras', QtdImpressoras) then
-      Exit;
+    if not ValidarInteiro(EdtQtdImpressoras.Text, 'Quantidade de impressoras', QtdImpressoras) then Exit;
 
   BtnGerar.Enabled := False;
   LblStatus.Caption := 'Coletando informacoes do computador...';
-  LblStatus.Update;
   Application.ProcessMessages;
 
   Pacote := TStringList.Create;
-  HardwareColetado := HardwareInfo.ColetarHardware;
+  HW := HardwareInfo.ColetarHardware;
   try
     Pacote.Add('Estabelecimento=' + Trim(EdtEstabelecimento.Text));
     Pacote.Add('TotalComputadores=' + IntToStr(TotalComputadores));
@@ -354,11 +345,10 @@ begin
     Pacote.Add('Observacoes=' + StringReplace(MemoObservacoes.Text, #13#10, ' | ', [rfReplaceAll]));
     Pacote.Add('DataGeracao=' + DateTimeToStr(Now));
 
-    for I := 0 to HardwareColetado.Count - 1 do
-      Pacote.Add(HardwareColetado[I]);
+    for I := 0 to HW.Count - 1 do
+      Pacote.Add(HW[I]);
 
-    LblStatus.Caption := 'Gravando arquivo de despacho...';
-    LblStatus.Update;
+    LblStatus.Caption := 'Gravando arquivo...';
     Application.ProcessMessages;
 
     PastaDesktop := GetEnvironmentVariable('USERPROFILE') + '\Desktop\';
@@ -367,13 +357,11 @@ begin
 
     NomeArquivo := SanitizarNomeArquivo(EdtEstabelecimento.Text) + '_' +
       FormatDateTime('yyyymmdd_hhnnss', Now) + '.LBX';
-
     CaminhoCompleto := PastaDesktop + NomeArquivo;
 
     SalvarArquivoLBX(CaminhoCompleto, Pacote.Text);
 
     LblStatus.Caption := 'Despacho gerado com sucesso.';
-
     ShowMessage(
       'Arquivo gerado com sucesso:' + LineEnding + LineEnding +
       CaminhoCompleto + LineEnding + LineEnding +
@@ -381,7 +369,7 @@ begin
     );
   finally
     Pacote.Free;
-    HardwareColetado.Free;
+    HW.Free;
     BtnGerar.Enabled := True;
   end;
 end;
