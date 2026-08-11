@@ -2,7 +2,7 @@ unit MainForm;
 
 {$mode objfpc}{$H+}
 
-\\interface
+interface
 
 uses
   Classes, SysUtils, Forms, Controls, StdCtrls, ExtCtrls, Dialogs,
