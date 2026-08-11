@@ -69,7 +69,7 @@ begin
   Position := poScreenCenter;
   BorderStyle := bsSingle;
   BorderIcons := [biSystemMenu];
-
+  ShowInTaskBar := stAlways;
   Y := 16;
 
   Lbl := TLabel.Create(Self);

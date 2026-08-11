@@ -43,7 +43,7 @@ jobs:
           Write-Host "LAZ path: $laz"
 
           Write-Host "Compilando Questionario.lpr para Windows x64..."
-          & $fpcExe -Twin64 -O2 `
+          & $fpcExe -Twin64 -O2 -WG `
             "-Fu$lcl" `
             "-Fu$win" `
             "-Fu$laz" `
