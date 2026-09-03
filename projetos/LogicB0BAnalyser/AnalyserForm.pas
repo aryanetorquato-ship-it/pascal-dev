@@ -15,41 +15,27 @@ type
     OpenDialog: TOpenDialog;
 
     LblLogo: TLabel;
-    LblSubLogo: TLabel;
     LblTitulo: TLabel;
+    LblSubtitulo: TLabel;
 
     PnlResultado: TPanel;
     LblResultado: TLabel;
     LblClassificacao: TLabel;
+    LblNota: TLabel;
 
-    PnlFuncoes: TPanel;
-    PnlServidor: TPanel;
-    PnlPDV: TPanel;
-    PnlCaixa: TPanel;
-
-    LblServidor: TLabel;
-    LblServidorNivel: TLabel;
-    LblServidorStatus: TLabel;
-
-    LblPDV: TLabel;
-    LblPDVNivel: TLabel;
-    LblPDVStatus: TLabel;
-
-    LblCaixa: TLabel;
-    LblCaixaNivel: TLabel;
-    LblCaixaStatus: TLabel;
+    PnlIndicadores: TPanel;
+    Indicador: array[1..10] of TPanel;
+    IndicadorTitulo: array[1..10] of TLabel;
+    IndicadorStatus: array[1..10] of TLabel;
+    IndicadorPontos: array[1..10] of TLabel;
 
     PnlHardware: TPanel;
     LblHardwareTitulo: TLabel;
     LblProcessador: TLabel;
     LblRAM: TLabel;
     LblSistema: TLabel;
+    LblArmazenamento: TLabel;
     LblEstabelecimento: TLabel;
-
-    PnlNota: TPanel;
-    LblNotaTitulo: TLabel;
-    LblNota: TLabel;
-    LblNotaTexto: TLabel;
 
     PnlObservacao: TPanel;
     LblObservacaoTitulo: TLabel;
@@ -65,9 +51,11 @@ type
     function CriarPainel(AParent: TWinControl;
       AX, AY, AW, AH: Integer): TPanel;
 
-    procedure DefinirStatus(ALabel: TLabel; Atende: Boolean);
+    procedure PrepararIndicador(AIndex: Integer;
+      const ATitulo: String);
+    procedure DefinirIndicador(AIndex: Integer;
+      const AStatus: String; APontos: Integer);
     procedure LimparResultado;
-
   public
     procedure MontarInterface;
   end;
@@ -78,16 +66,18 @@ var
 implementation
 
 const
-  COR_FUNDO       = $00FAFBFD;
+  COR_FUNDO       = $00F5F7FA;
   COR_AZUL        = $00D87800;
   COR_AZUL_ESCURO = $00172B4D;
   COR_VERDE       = $002B9854;
   COR_VERDE_CLARO = $00E5F6EC;
+  COR_AMARELO     = $0000B5E6;
+  COR_AMARELO_CLARO = $00EAF6FC;
+  COR_VERMELHO    = $003D3DCB;
+  COR_VERMELHO_CLARO = $00E6E6F5;
   COR_CINZA       = $006B788C;
   COR_BORDA       = $00DDE4EC;
   COR_BRANCO      = clWhite;
-  COR_ROXO        = $00A05A7A;
-  COR_LARANJA     = $000080E6;
 
 function TfrmAnalyser.CriarLabel(AParent: TWinControl;
   const ATexto: String; AX, AY, AW, AH: Integer;
@@ -126,27 +116,71 @@ begin
   Result.Color := COR_BRANCO;
 end;
 
-procedure TfrmAnalyser.DefinirStatus(ALabel: TLabel; Atende: Boolean);
+procedure TfrmAnalyser.PrepararIndicador(AIndex: Integer;
+  const ATitulo: String);
 begin
-  if Atende then
+  Indicador[AIndex] := CriarPainel(PnlIndicadores, 0, 0, 0, 0);
+  IndicadorTitulo[AIndex] := CriarLabel(Indicador[AIndex],
+    ATitulo, 12, 10, 150, 25, 10, True);
+  IndicadorTitulo[AIndex].Font.Color := COR_AZUL_ESCURO;
+
+  IndicadorStatus[AIndex] := CriarLabel(Indicador[AIndex],
+    'NÃO AVALIADO', 12, 38, 150, 22, 9, True);
+  IndicadorStatus[AIndex].Alignment := taCenter;
+  IndicadorStatus[AIndex].Transparent := False;
+  IndicadorStatus[AIndex].Color := $00EEF1F5;
+  IndicadorStatus[AIndex].Font.Color := COR_CINZA;
+
+  IndicadorPontos[AIndex] := CriarLabel(Indicador[AIndex],
+    '— / 10', 12, 65, 150, 22, 9, True);
+  IndicadorPontos[AIndex].Alignment := taCenter;
+  IndicadorPontos[AIndex].Font.Color := COR_CINZA;
+end;
+
+procedure TfrmAnalyser.DefinirIndicador(AIndex: Integer;
+  const AStatus: String; APontos: Integer);
+begin
+  IndicadorStatus[AIndex].Caption := AStatus;
+  IndicadorPontos[AIndex].Caption := IntToStr(APontos) + ' / 10';
+
+  if APontos >= 10 then
   begin
-    ALabel.Caption := 'ATENDE';
-    ALabel.Font.Color := COR_VERDE;
-    ALabel.Color := COR_VERDE_CLARO;
+    IndicadorStatus[AIndex].Color := COR_VERDE_CLARO;
+    IndicadorStatus[AIndex].Font.Color := COR_VERDE;
+  end
+  else if APontos > 0 then
+  begin
+    IndicadorStatus[AIndex].Color := COR_AMARELO_CLARO;
+    IndicadorStatus[AIndex].Font.Color := COR_AMARELO;
   end
   else
   begin
-    ALabel.Caption := 'NÃO ATENDE';
-    ALabel.Font.Color := clMaroon;
-    ALabel.Color := $00F3E2E2;
+    IndicadorStatus[AIndex].Color := COR_VERMELHO_CLARO;
+    IndicadorStatus[AIndex].Font.Color := COR_VERMELHO;
   end;
 end;
 
 procedure TfrmAnalyser.MontarInterface;
+const
+  Titulos: array[1..10] of String = (
+    'SERVIDOR',
+    'PDV / RETAGUARDA',
+    'CAIXA / FRENTE',
+    'PROCESSADOR',
+    'MEMÓRIA RAM',
+    'ESPAÇO LIVRE',
+    'SAÚDE DO DISCO',
+    'WINDOWS',
+    'ARMAZENAMENTO',
+    'SISTEMA OPERACIONAL'
+  );
+var
+  I, Coluna, Linha: Integer;
+  X, Y: Integer;
 begin
-  Caption := 'Logicbox - Verificador de Requisitos de Hardware';
-  Width := 1100;
-  Height := 700;
+  Caption := 'LogicB0B Analyser';
+  Width := 1120;
+  Height := 790;
   Position := poScreenCenter;
   BorderStyle := bsSingle;
   BorderIcons := [biSystemMenu, biMinimize];
@@ -157,21 +191,22 @@ begin
   OpenDialog.Filter := 'Arquivos LBX (*.lbx)|*.lbx';
   OpenDialog.Title := 'Abrir arquivo .LBX';
 
-  LblLogo := CriarLabel(Self, 'LOGICBOX', 45, 24, 280, 36, 23, True);
+  LblLogo := CriarLabel(Self, 'LogicB0B', 40, 22, 250, 38, 23, True);
   LblLogo.Font.Color := COR_AZUL_ESCURO;
 
-  LblSubLogo := CriarLabel(Self, 'S I S T E M A S', 47, 58, 230, 20, 9, True);
-  LblSubLogo.Font.Color := COR_AZUL;
+  LblSubtitulo := CriarLabel(Self,
+    'ANÁLISE DE CONFIGURAÇÃO', 42, 56, 260, 20, 9, True);
+  LblSubtitulo.Font.Color := COR_AZUL;
 
   LblTitulo := CriarLabel(Self, 'RESULTADO DA ANÁLISE',
-    300, 30, 750, 42, 23, True);
+    320, 24, 620, 38, 22, True);
   LblTitulo.Alignment := taCenter;
 
   BtnAbrir := TButton.Create(Self);
   BtnAbrir.Parent := Self;
-  BtnAbrir.Left := 45;
-  BtnAbrir.Top := 82;
-  BtnAbrir.Width := 180;
+  BtnAbrir.Left := 880;
+  BtnAbrir.Top := 28;
+  BtnAbrir.Width := 190;
   BtnAbrir.Height := 34;
   BtnAbrir.Caption := 'Abrir arquivo .LBX';
   BtnAbrir.Font.Name := 'Segoe UI';
@@ -179,133 +214,107 @@ begin
   BtnAbrir.Font.Style := [fsBold];
   BtnAbrir.OnClick := @BtnAbrirClick;
 
-  PnlResultado := CriarPainel(Self, 45, 128, 1010, 110);
+  PnlResultado := CriarPainel(Self, 40, 92, 1030, 105);
 
   LblResultado := CriarLabel(PnlResultado,
-    'AGUARDANDO ANÁLISE', 35, 22, 940, 40, 22, True);
+    'AGUARDANDO ANÁLISE', 25, 17, 660, 38, 21, True);
   LblResultado.Alignment := taCenter;
   LblResultado.Font.Color := COR_CINZA;
 
   LblClassificacao := CriarLabel(PnlResultado,
     'Abra um arquivo .LBX para iniciar a análise.',
-    35, 67, 940, 25, 11);
+    25, 58, 660, 25, 10);
   LblClassificacao.Alignment := taCenter;
   LblClassificacao.Font.Color := COR_CINZA;
 
-  PnlFuncoes := CriarPainel(Self, 45, 253, 1010, 170);
+  LblNota := CriarLabel(PnlResultado,
+    '— / 100', 735, 20, 245, 58, 27, True);
+  LblNota.Alignment := taCenter;
+  LblNota.Font.Color := COR_CINZA;
 
-  CriarLabel(PnlFuncoes, 'CLASSIFICAÇÃO POR FUNÇÃO',
-    25, 14, 960, 28, 13, True).Alignment := taCenter;
+  PnlIndicadores := CriarPainel(Self, 40, 212, 1030, 265);
 
-  PnlServidor := CriarPainel(PnlFuncoes, 25, 52, 300, 105);
-  PnlPDV := CriarPainel(PnlFuncoes, 355, 52, 300, 105);
-  PnlCaixa := CriarPainel(PnlFuncoes, 685, 52, 300, 105);
+  CriarLabel(PnlIndicadores, 'INDICADORES DA ANÁLISE',
+    20, 12, 990, 25, 13, True).Alignment := taCenter;
 
-  LblServidor := CriarLabel(PnlServidor, 'SERVIDOR',
-    25, 20, 250, 25, 13, True);
-  LblServidor.Font.Color := COR_AZUL;
+  for I := 1 to 10 do
+  begin
+    Coluna := (I - 1) mod 5;
+    Linha := (I - 1) div 5;
 
-  LblServidorNivel := CriarLabel(PnlServidor, 'Não avaliado',
-    25, 50, 250, 22, 10);
-  LblServidorNivel.Font.Color := COR_CINZA;
+    X := 18 + Coluna * 198;
+    Y := 48 + Linha * 105;
 
-  LblServidorStatus := CriarLabel(PnlServidor, 'NÃO AVALIADO',
-    25, 77, 120, 22, 9, True);
-  LblServidorStatus.Alignment := taCenter;
-  LblServidorStatus.Transparent := False;
+    PrepararIndicador(I, Titulos[I]);
+    Indicador[I].Left := X;
+    Indicador[I].Top := Y;
+    Indicador[I].Width := 188;
+    Indicador[I].Height := 92;
+  end;
 
-  LblPDV := CriarLabel(PnlPDV, 'PDV / RETAGUARDA',
-    25, 20, 250, 25, 13, True);
-  LblPDV.Font.Color := COR_ROXO;
-
-  LblPDVNivel := CriarLabel(PnlPDV, 'Não avaliado',
-    25, 50, 250, 22, 10);
-  LblPDVNivel.Font.Color := COR_CINZA;
-
-  LblPDVStatus := CriarLabel(PnlPDV, 'NÃO AVALIADO',
-    25, 77, 120, 22, 9, True);
-  LblPDVStatus.Alignment := taCenter;
-  LblPDVStatus.Transparent := False;
-
-  LblCaixa := CriarLabel(PnlCaixa, 'CAIXA / FRENTE',
-    25, 20, 250, 25, 13, True);
-  LblCaixa.Font.Color := COR_LARANJA;
-
-  LblCaixaNivel := CriarLabel(PnlCaixa, 'Não avaliado',
-    25, 50, 250, 22, 10);
-  LblCaixaNivel.Font.Color := COR_CINZA;
-
-  LblCaixaStatus := CriarLabel(PnlCaixa, 'NÃO AVALIADO',
-    25, 77, 120, 22, 9, True);
-  LblCaixaStatus.Alignment := taCenter;
-  LblCaixaStatus.Transparent := False;
-
-  PnlHardware := CriarPainel(Self, 45, 438, 635, 190);
+  PnlHardware := CriarPainel(Self, 40, 492, 670, 190);
 
   LblHardwareTitulo := CriarLabel(PnlHardware,
-    'HARDWARE ENCONTRADO', 25, 18, 580, 30, 14, True);
+    'HARDWARE ENCONTRADO', 22, 16, 620, 28, 13, True);
 
   LblProcessador := CriarLabel(PnlHardware,
-    'Processador: -', 30, 55, 570, 25, 11);
+    'Processador: -', 25, 50, 620, 23, 10);
 
   LblRAM := CriarLabel(PnlHardware,
-    'Memória RAM: -', 30, 85, 570, 25, 11);
+    'Memória RAM: -', 25, 78, 620, 23, 10);
 
   LblSistema := CriarLabel(PnlHardware,
-    'Sistema Operacional: -', 30, 115, 570, 25, 11);
+    'Sistema Operacional: -', 25, 106, 620, 23, 10);
+
+  LblArmazenamento := CriarLabel(PnlHardware,
+    'Armazenamento: -', 25, 134, 620, 23, 10);
 
   LblEstabelecimento := CriarLabel(PnlHardware,
-    'Estabelecimento: -', 30, 145, 570, 25, 11);
+    'Estabelecimento: -', 25, 162, 620, 23, 10);
 
-  PnlNota := CriarPainel(Self, 700, 438, 355, 190);
-
-  LblNotaTitulo := CriarLabel(PnlNota,
-    'NOTA DO SISTEMA', 25, 18, 305, 30, 14, True);
-  LblNotaTitulo.Alignment := taCenter;
-
-  LblNota := CriarLabel(PnlNota,
-    '—', 25, 58, 305, 50, 32, True);
-  LblNota.Alignment := taCenter;
-  LblNota.Font.Color := COR_VERDE;
-
-  LblNotaTexto := CriarLabel(PnlNota,
-    'Aguardando análise', 25, 120, 305, 45, 10);
-  LblNotaTexto.Alignment := taCenter;
-  LblNotaTexto.WordWrap := True;
-  LblNotaTexto.Font.Color := COR_CINZA;
-
-  PnlObservacao := CriarPainel(Self, 45, 638, 1010, 40);
+  PnlObservacao := CriarPainel(Self, 730, 492, 340, 190);
 
   LblObservacaoTitulo := CriarLabel(PnlObservacao,
-    'OBSERVAÇÕES', 15, 8, 120, 22, 9, True);
-  LblObservacaoTitulo.Font.Color := COR_AZUL;
+    'OBSERVAÇÕES', 18, 16, 300, 25, 13, True);
 
   LblObservacao := CriarLabel(PnlObservacao,
-    'Nenhuma análise realizada.', 145, 8, 840, 22, 9);
+    'Nenhuma análise realizada.', 18, 52, 300, 115, 10);
+  LblObservacao.WordWrap := True;
   LblObservacao.Font.Color := COR_CINZA;
+
+  LimparResultado;
 end;
 
 procedure TfrmAnalyser.LimparResultado;
+var
+  I: Integer;
 begin
-  LblResultado.Caption := 'ANALISANDO...';
-  LblResultado.Font.Color := COR_AZUL;
-  LblClassificacao.Caption := 'Verificando os requisitos do computador...';
+  LblResultado.Caption := 'AGUARDANDO ANÁLISE';
+  LblResultado.Font.Color := COR_CINZA;
 
-  LblServidorNivel.Caption := 'Não avaliado';
-  LblServidorStatus.Caption := 'NÃO AVALIADO';
-  LblPDVNivel.Caption := 'Não avaliado';
-  LblPDVStatus.Caption := 'NÃO AVALIADO';
-  LblCaixaNivel.Caption := 'Não avaliado';
-  LblCaixaStatus.Caption := 'NÃO AVALIADO';
+  LblClassificacao.Caption :=
+    'Abra um arquivo .LBX para iniciar a análise.';
+  LblClassificacao.Font.Color := COR_CINZA;
+
+  LblNota.Caption := '— / 100';
+  LblNota.Font.Color := COR_CINZA;
+
+  for I := 1 to 10 do
+  begin
+    IndicadorStatus[I].Caption := 'NÃO AVALIADO';
+    IndicadorStatus[I].Color := $00EEF1F5;
+    IndicadorStatus[I].Font.Color := COR_CINZA;
+    IndicadorPontos[I].Caption := '— / 10';
+    IndicadorPontos[I].Font.Color := COR_CINZA;
+  end;
 
   LblProcessador.Caption := 'Processador: -';
   LblRAM.Caption := 'Memória RAM: -';
   LblSistema.Caption := 'Sistema Operacional: -';
+  LblArmazenamento.Caption := 'Armazenamento: -';
   LblEstabelecimento.Caption := 'Estabelecimento: -';
 
-  LblNota.Caption := '—';
-  LblNotaTexto.Caption := 'Aguardando análise';
-  LblObservacao.Caption := 'Analisando os requisitos do sistema...';
+  LblObservacao.Caption := 'Nenhuma análise realizada.';
 end;
 
 procedure TfrmAnalyser.ProcessarConteudo(const Conteudo: String);
@@ -314,7 +323,7 @@ var
   I, PosIgual: Integer;
   Chave, Valor: String;
   Processador, MemoriaRAM, SistemaOperacional, Papel,
-    Estabelecimento: String;
+    Estabelecimento, Armazenamento: String;
   RAMGB: Integer;
   Avaliacao: TResultadoAvaliacao;
   NivelTexto: String;
@@ -328,6 +337,7 @@ begin
     SistemaOperacional := '';
     Papel := '';
     Estabelecimento := '';
+    Armazenamento := '';
 
     for I := 0 to Linhas.Count - 1 do
     begin
@@ -348,12 +358,14 @@ begin
       else if Chave = 'PapelComputador' then
         Papel := Valor
       else if Chave = 'Estabelecimento' then
-        Estabelecimento := Valor;
+        Estabelecimento := Valor
+      else if Chave = 'Armazenamento' then
+        Armazenamento := Valor;
     end;
 
     RAMGB := ExtrairRAMGB(MemoriaRAM);
 
-    { ÚNICA chamada à lógica existente. }
+    { Mantida a lógica atual: uma única avaliação do papel informado. }
     Avaliacao := AvaliarPapel(
       Papel,
       Processador,
@@ -366,7 +378,7 @@ begin
     if Avaliacao.Nivel = naNaoClassificado then
     begin
       LblResultado.Caption := 'NÃO CLASSIFICADO';
-      LblResultado.Font.Color := clMaroon;
+      LblResultado.Font.Color := COR_VERMELHO;
       LblClassificacao.Caption := Avaliacao.Motivo;
       LblClassificacao.Font.Color := COR_CINZA;
     end
@@ -374,46 +386,22 @@ begin
     begin
       if Avaliacao.Nivel = naMinima then
       begin
-        LblResultado.Caption := 'APROVADO COM RESSALVAS';
-        LblResultado.Font.Color := COR_VERDE;
+        LblResultado.Caption := 'ANÁLISE COM RESSALVAS';
+        LblResultado.Font.Color := COR_AMARELO;
       end
       else
       begin
-        LblResultado.Caption := 'APROVADO';
+        LblResultado.Caption := 'CONFIGURAÇÃO ADEQUADA';
         LblResultado.Font.Color := COR_VERDE;
       end;
 
       LblClassificacao.Caption :=
-        'Melhor classificação atingida: ' + NivelTexto;
+        'Classificação da função informada: ' + NivelTexto;
       LblClassificacao.Font.Color := COR_VERDE;
     end;
 
-    { Mostra o resultado somente na função informada pelo LBX. }
-
-    if Papel = 'Servidor' then
-    begin
-      LblServidorNivel.Caption := NivelTexto;
-      DefinirStatus(
-        LblServidorStatus,
-        Avaliacao.Nivel <> naNaoClassificado
-      );
-    end
-    else if Papel = 'PDV_Retaguarda' then
-    begin
-      LblPDVNivel.Caption := NivelTexto;
-      DefinirStatus(
-        LblPDVStatus,
-        Avaliacao.Nivel <> naNaoClassificado
-      );
-    end
-    else if Papel = 'Caixa' then
-    begin
-      LblCaixaNivel.Caption := NivelTexto;
-      DefinirStatus(
-        LblCaixaStatus,
-        Avaliacao.Nivel <> naNaoClassificado
-      );
-    end;
+    { O layout já possui os 10 indicadores.
+      A pontuação será ligada às regras posteriormente. }
 
     LblProcessador.Caption :=
       'Processador: ' + Processador;
@@ -424,15 +412,25 @@ begin
     LblSistema.Caption :=
       'Sistema Operacional: ' + SistemaOperacional;
 
+    LblArmazenamento.Caption :=
+      'Armazenamento: ' + Armazenamento;
+
     LblEstabelecimento.Caption :=
       'Estabelecimento: ' + Estabelecimento;
 
-    LblNota.Caption := '—';
-    LblNotaTexto.Caption :=
-      'A nota será adicionada quando houver uma regra de pontuação definida.';
+    LblNota.Caption := '— / 100';
+    LblNota.Font.Color := COR_CINZA;
 
     LblObservacao.Caption := Avaliacao.Motivo;
 
+    { Mostra visualmente o papel atual no indicador correspondente.
+      Os demais permanecem disponíveis para a futura pontuação dos 10 itens. }
+    if Papel = 'Servidor' then
+      DefinirIndicador(1, 'ATENDE', 10)
+    else if Papel = 'PDV_Retaguarda' then
+      DefinirIndicador(2, 'ATENDE', 10)
+    else if Papel = 'Caixa' then
+      DefinirIndicador(3, 'ATENDE', 10);
   finally
     Linhas.Free;
   end;
@@ -447,9 +445,7 @@ begin
 
   try
     LimparResultado;
-
     Conteudo := AbrirArquivoLBX(OpenDialog.FileName);
-
     ProcessarConteudo(Conteudo);
   except
     on E: Exception do
