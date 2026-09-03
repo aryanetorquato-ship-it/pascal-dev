@@ -59,10 +59,15 @@ type
     RawPropertiesLength: DWORD;
   end;
 
+  // CORRIGIDO: o campo real do Windows (DEVICE_SEEK_PENALTY_DESCRIPTOR) e
+  // BOOLEAN (1 byte), nao BOOL (4 bytes). Usar BOOL fazia SizeOf(record)
+  // dar 12 bytes em vez dos 9 bytes que o driver realmente preenche,
+  // quebrando a checagem de BytesReturned e fazendo o SeekPenalty falhar
+  // silenciosamente em todo disco SATA/SAS (nao-NVMe).
   TStorageDeviceSeekPenaltyDescriptorCompat = record
     Version: DWORD;
     Size: DWORD;
-    IncursSeekPenalty: BOOL;
+    IncursSeekPenalty: Byte;
   end;
 
   TStoragePredictFailureCompat = record
@@ -420,9 +425,12 @@ begin
     nil
   ) then
   begin
+    // CORRIGIDO: com o record usando Byte, SizeOf(Descriptor) agora bate
+    // com os 9 bytes reais que o driver preenche (4+4+1), entao esta
+    // checagem passa a funcionar corretamente para discos SATA/SAS.
     if BytesReturned >= SizeOf(Descriptor) then
     begin
-      TemSeekPenalty := Descriptor.IncursSeekPenalty <> FALSE;
+      TemSeekPenalty := Descriptor.IncursSeekPenalty <> 0;
       Result := True;
     end;
   end;
