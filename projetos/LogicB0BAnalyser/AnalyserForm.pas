@@ -639,9 +639,10 @@ var
   I, PosIgual: Integer;
   Chave, Valor: String;
   Processador, MemoriaRAM, SistemaOperacional, Papel,
-    Estabelecimento, Armazenamento: String;
+    Estabelecimento, Armazenamento, TipoArmazenamento: String;
   RAMGB: Integer;
-  AvalServidor, AvalPDV, AvalCaixa: TResultadoAvaliacao;
+  TemSSD: Boolean;
+  AvalServidor, AvalPDV, AvalCaixa, AvalProcessador: TResultadoAvaliacao;
   MelhorNivel: TNivelAdequacao;
 begin
   Linhas := TStringList.Create;
@@ -653,6 +654,7 @@ begin
     Papel := '';
     Estabelecimento := '';
     Armazenamento := '';
+    TipoArmazenamento := '';
 
     for I := 0 to Linhas.Count - 1 do
     begin
@@ -673,10 +675,24 @@ begin
       else if Chave = 'Estabelecimento' then
         Estabelecimento := Valor
       else if Chave = 'Armazenamento' then
-        Armazenamento := Valor;
+        Armazenamento := Valor
+      else if Chave = 'TipoArmazenamento' then
+        TipoArmazenamento := Valor;
     end;
 
     RAMGB := ExtrairRAMGB(MemoriaRAM);
+
+    { Indicador #4: capacidade da CPU.
+      O TipoArmazenamento e usado apenas para a regra das CPUs
+      de entrada. Compatibilidade com Windows 11 permanece
+      separada e nao participa desta avaliacao. }
+    TemSSD :=
+      (Pos('SSD', UpperCase(TipoArmazenamento)) > 0) or
+      (Pos('NVME', UpperCase(TipoArmazenamento)) > 0) or
+      (Pos('M.2', UpperCase(TipoArmazenamento)) > 0);
+
+    AvalProcessador :=
+      AvaliarProcessadorIsolado(Processador, RAMGB, TemSSD);
 
     { Os tres papeis sao avaliados sempre, contra o mesmo hardware,
       independente de qual papel foi informado no .LBX. }
@@ -687,7 +703,8 @@ begin
     ClassificarNoIndicador(1, AvalServidor);
     ClassificarNoIndicador(2, AvalPDV);
     ClassificarNoIndicador(3, AvalCaixa);
-    { Indicadores 4 a 10 seguem "NAO AVALIADO" ate as regras deles
+    ClassificarNoIndicador(4, AvalProcessador);
+    { Indicadores 5 a 10 seguem "NAO AVALIADO" ate as regras deles
       serem definidas. }
 
     MelhorNivel := AvalServidor.Nivel;
