@@ -2,6 +2,7 @@ program Questionario;
 
 {$mode objfpc}{$H+}
 {$apptype GUI}
+{$UNITPATH '../Common'}
 
 uses
   {$IFDEF UNIX}

@@ -2,6 +2,7 @@ program Analyser;
 
 {$mode objfpc}{$H+}
 {$apptype GUI}
+{$UNITPATH '../Common'}
 
 uses
   Interfaces, Forms, AnalyserForm;
